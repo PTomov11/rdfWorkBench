@@ -2,7 +2,7 @@ export default class APIService {
 
 
     getStatements() {
-        return fetch('http://localhost:8080/rdf4j-server/repositories/skuska/statements', {
+        return fetch('http://localhost:8081/rdf4j-server/repositories/skuska/statements', {
             method: 'GET',
             headers: {
                 'Accept': 'application/ld+json'
@@ -12,10 +12,22 @@ export default class APIService {
     }
 
 
+    async createRepository(id: string, title: string, persist: boolean, delay: number, store: string) {
+        const response = await fetch('http://localhost:8081/rdf4j-server/repositories/' + id, {
+            method: 'PUT',
+            headers: {
+                'Content-Type' : 'text/turtle'
+            }
+        });
+    }
+    deleteRepository(id: string) {
+        fetch('http://localhost:8081/rdf4j-server/repositories/' + id, {
+            method: 'DELETE',
+        }).then(response => response)
+    }
 
-
-    getListOfRepositories() {
-        return fetch('http://localhost:8080/rdf4j-server/repositories', {
+    async getListOfRepositories() {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories', {
           method: 'GET',
           headers: {
             'Accept': 'application/sparql-results+json'

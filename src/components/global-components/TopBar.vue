@@ -7,7 +7,7 @@
       </div>
       <div class="item">
         <p class="info">RDF4J Server: Server</p>
-        <p class="info">Repository: Current selected repository</p>
+        <p class="info">Repository : {{ repositoryName }}</p>
       </div>
     </div>
   </div>
@@ -18,7 +18,8 @@ import {defineComponent} from "vue";
 
 export default defineComponent({
   name: "TopBar",
-  props: ['title']
+  props: ['title', 'repositoryName'],
+
 })
 </script>
 
