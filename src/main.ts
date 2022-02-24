@@ -13,11 +13,19 @@ import router from "../src/router/router";
 import Column from "primevue/column";
 import Toast from "primevue/toast";
 import TabMenu from 'primevue/tabmenu';
+import Dropdown from 'primevue/dropdown';
+import ToggleButton from 'primevue/togglebutton';
+import ToastService from 'primevue/toastservice';
+import Dialog from "primevue/dialog";
 
 const app = createApp(App)
 app.use(PrimeVue)
 app.use(router)
+app.use(ToastService)
 app.component('TabMenu', TabMenu)
+app.component('Dialog', Dialog)
+app.component('ToggleButton', ToggleButton)
+app.component('Dropdown', Dropdown)
 app.component('InputText', InputText)
 app.component('Button', Button)
 app.component('MegaMenu', MegaMenu)

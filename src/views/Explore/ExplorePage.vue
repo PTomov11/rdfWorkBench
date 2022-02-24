@@ -45,7 +45,7 @@ export default defineComponent({
     }
   },
   async created() {
-    const response = await fetch('http://localhost:8080/rdf4j-server/repositories/skuska/statements', {
+    const response = await fetch('http://localhost:8081/rdf4j-server/repositories/skuska/statements', {
       method: 'GET',
       headers: {
         'Accept': 'application/rdf+json'
