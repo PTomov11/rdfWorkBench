@@ -1,19 +1,13 @@
 <template>
-  <SideBar active-section="Repositories"></SideBar>
-  <TopBar title="Repositories" ></TopBar>
-
-  <div class="main">
-
-  </div>
+  <RepositoriesList></RepositoriesList>
 </template>
 
 <script lang="ts">
-import SideBar  from "../../components/global-components/SideBar.vue";
-import TopBar from "../../components/global-components/TopBar.vue";
 import {defineComponent} from "vue";
+import RepositoriesList from "@/views/Repositories/RepositoriesList.vue";
 export default defineComponent({
   name: "RepositoriesPage",
-  components: {TopBar, SideBar}
+  components: {RepositoriesList}
 })
 </script>
 
@@ -22,7 +16,7 @@ export default defineComponent({
     position: absolute;
     top: 100px;
     left: 200px;
-    width: 87%;
+    width: 90%;
     height: 90%;
     background-color: #DCD6D6;
   }
