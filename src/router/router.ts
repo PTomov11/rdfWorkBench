@@ -6,6 +6,9 @@ import SystemPage from "@/views/System/SystemPage.vue";
 import HomePage from "@/views/HomePage.vue";
 import AboutRepositoryPage from "@/views/Explore/AboutRepositoryPage.vue";
 import QueryPage from "@/views/Explore/QueryPage.vue";
+import Types from "@/views/Explore/AbouRepository/Types.vue";
+import Context from "@/views/Explore/AbouRepository/Context.vue";
+import Namespaces from "@/views/Explore/AbouRepository/Namespaces.vue";
 
 const routes = [
     {
@@ -27,6 +30,21 @@ const routes = [
         path: '/about',
         name: 'AboutRepositoryPage',
         component: AboutRepositoryPage
+    },
+    {
+        path: '/types',
+        name: 'Types',
+        component: Types
+    },
+    {
+        path: '/context',
+        name: 'Context',
+        component: Context
+    },
+    {
+        path: '/namespaces',
+        name: 'Namespaces',
+        component: Namespaces
     },
     {
         path: '/query',
