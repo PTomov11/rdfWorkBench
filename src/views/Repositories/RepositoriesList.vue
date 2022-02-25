@@ -1,7 +1,7 @@
 <template>
   <Toast/>
   <SideBar active-section="Repositories"></SideBar>
-  <TopBar title="Repositories" :repositoryName="selectedRepository"></TopBar>
+  <TopBar title="Repositories"></TopBar>
 
   <div class="main">
     <div class="item">
@@ -12,7 +12,7 @@
           <Column field="uri.value" header="Location" :sortable="true"></Column>
           <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
-              <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" @click="selectRepository(slotProps.data)" />
+              <Button icon="pi pi-check" class="p-button-rounded p-button-success mr-2" :disabled="selectedRepository === slotProps.data.id.value" @click="selectRepository(slotProps.data)" />
               <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" @click="confirmDeleteRepository(slotProps.data)" />
             </template>
           </Column>
@@ -66,7 +66,6 @@ export default defineComponent({
   data() {
     return {
       selectedStore: '',
-      selectedRepository: '',
       id: '',
       title: '',
       persist: false,
@@ -84,29 +83,36 @@ export default defineComponent({
   },
   created() {
     this.apiService = new APIService();
-    this.apiService.getListOfRepositories().then((data: Repository[]) => this.repositories = data);
+    this.apiService.getListOfRepositories().then((data: Repository[]) => this.repositories = data)
   },
+  computed: {
+    selectedRepository() {
+      return this.$store.state.selectedRepository
+    }
+  },
+
   methods: {
     confirmDeleteRepository(repository: any) {
-      this.repository = repository;
-      this.deleteRepositoryDialog = true;
+      this.repository = repository
+      this.deleteRepositoryDialog = true
     },
     deleteRepository() {
-      this.repositories = this.repositories.filter(val => val.id.value !== this.repository.id.value);
-      this.deleteRepositoryDialog = false;
+      this.repositories = this.repositories.filter(val => val.id.value !== this.repository.id.value)
+      this.deleteRepositoryDialog = false
       this.apiService.deleteRepository(this.repository.id.value)
-      this.repository = {} as Repository;
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Repository Deleted', life: 3000});
+      this.repository = {} as Repository
+      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Repository Deleted', life: 3000})
     },
     selectRepository(repository: Repository) {
-      this.selectedRepository = repository.id.value;
-      this.$toast.add({severity: 'info', summary: 'Repository Selected', detail: 'Name: ' + this.selectedRepository, life: 3000});
+      this.$store.dispatch('changeSelectedRepository', repository.id.value)
+      this.selectedRepository = repository.id.value
+      this.$toast.add({severity: 'info', summary: 'Repository Selected', detail: 'Name: ' + repository.id.value, life: 3000})
     },
     openModal() {
-      this.displayModal = true;
+      this.displayModal = true
     },
     createRepository() {
-      this.displayModal = false;
+      this.displayModal = false
     }
   }
 })
