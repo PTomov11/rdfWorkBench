@@ -17,10 +17,12 @@ import Dropdown from 'primevue/dropdown';
 import ToggleButton from 'primevue/togglebutton';
 import ToastService from 'primevue/toastservice';
 import Dialog from "primevue/dialog";
+import store from '../src/store/store';
 
 const app = createApp(App)
 app.use(PrimeVue)
 app.use(router)
+app.use(store)
 app.use(ToastService)
 app.component('TabMenu', TabMenu)
 app.component('Dialog', Dialog)
