@@ -18,6 +18,7 @@ import ToggleButton from 'primevue/togglebutton';
 import ToastService from 'primevue/toastservice';
 import Dialog from "primevue/dialog";
 import store from '../src/store/store';
+import Textarea from "primevue/textarea";
 
 const app = createApp(App)
 app.use(PrimeVue)
@@ -25,6 +26,7 @@ app.use(router)
 app.use(store)
 app.use(ToastService)
 app.component('TabMenu', TabMenu)
+app.component('Textarea', Textarea)
 app.component('Dialog', Dialog)
 app.component('ToggleButton', ToggleButton)
 app.component('Dropdown', Dropdown)

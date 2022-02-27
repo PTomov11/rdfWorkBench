@@ -18,7 +18,7 @@
     <div class="menu-item">
       <div v-if="activeSection === 'Update'" class="active"></div>
       <i class="pi pi-cloud-upload icon"></i>
-      <router-link class="section" :to="{ name: 'UpdatePage' }">Update</router-link>
+      <router-link class="section" :to="{ name: 'UpdateRepositoryPage' }">Update</router-link>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'System'" class="active"></div>

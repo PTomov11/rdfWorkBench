@@ -1,38 +1,38 @@
 <template>
   <AboutRepositoryPage></AboutRepositoryPage>
-  <div class="card">
-    <h5>Frozen Columns</h5>
-    <ToggleButton v-model="balanceFrozen" onIcon="pi pi-lock" offIcon="pi pi-lock-open" onLabel="Unfreeze Balance" offLabel="Freeze Balance" style="flex-grow:1; flex-basis: 12rem" />
 
-    <DataTable :value="customers2" :scrollable="true" scrollHeight="400px" :loading="loading" scrollDirection="both" class="mt-3">
-      <Column field="name" header="Name" style="flex-grow:1; flex-basis:160px" frozen></Column>
-      <Column field="id" header="Id" style="flex-grow:1; flex-basis:100px"></Column>
-      <Column field="name" header="Name" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="country.name" header="Country" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="date" header="Date" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="company" header="Company" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="status" header="Status" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="activity" header="Activity" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="representative.name" header="Representative" style="flex-grow:1; flex-basis:200px"></Column>
-      <Column field="balance" header="Balance" style="flex-grow:1; flex-basis:120px" alignFrozen="right" :frozen="balanceFrozen">
-        <template #body="{data}">
-          <span class="font-bold">{{formatCurrency(data.balance)}}</span>
-        </template>
-      </Column>
-    </DataTable>
-  </div>
+  <DataTable class="table" :value="types" stripedRows responsiveLayout="scroll">
+    <Column field="type.value" header="Name"></Column>
+  </DataTable>
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue";
 import AboutRepositoryPage from "@/views/Explore/AboutRepositoryPage.vue";
+import APIService from "@/services/APIService";
+import {Type} from "@/views/Explore/types/ExploreTypes";
+import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
 
 export default defineComponent({
   name: "Types",
-  components: {AboutRepositoryPage}
+  components: {AboutRepositoryPage},
+  data() {
+    return {
+      types: [] as Type[],
+      apiService: null as unknown as APIService,
+    }
+  },
+  mounted() {
+    this.apiService = new APIService()
+    this.apiService.getTypesOfRepository(this.$store.state.selectedRepository).then((data: Type[]) => this.types = data)
+  }
 })
 </script>
 
 <style scoped>
-
+  .table {
+    margin-top: 100px;
+    width: 100%;
+    margin-left: 200px;
+  }
 </style>

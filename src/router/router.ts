@@ -1,7 +1,7 @@
 import {createRouter, createWebHistory} from "vue-router";
 import RepositoriesPage from "@/views/Repositories/RepositoriesPage.vue";
 import ExplorePage from "@/views/Explore/ExplorePage.vue";
-import UpdatePage from "@/views/Update/UpdatePage.vue";
+import UpdateRepositoryPage from "@/views/Update/UpdateRepositoryPage.vue";
 import SystemPage from "@/views/System/SystemPage.vue";
 import HomePage from "@/views/HomePage.vue";
 import AboutRepositoryPage from "@/views/Explore/AboutRepositoryPage.vue";
@@ -53,8 +53,8 @@ const routes = [
     },
     {
         path: '/update',
-        name: 'UpdatePage',
-        component: UpdatePage
+        name: 'UpdateRepositoryPage',
+        component: UpdateRepositoryPage
     },
     {
         path: '/system',
