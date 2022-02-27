@@ -46,7 +46,7 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
   .summary-header {
     width: 100%;
     font-size: 70px;
@@ -60,7 +60,7 @@ export default defineComponent({
     height: 150px;
     background-color: white;
     border-radius: 10px;
-    margin: 0px 15px 0 75px;
+    margin: 0 15px 0 75px;
   }
   .separator {
     width: 100%;
@@ -77,8 +77,14 @@ export default defineComponent({
     width: 90%;
     background-color: #DCD6D6;
   }
+  .p-component {
+    font-size: 2rem;
+  }
   .p-tabmenu {
     width: 100%;
-    background-color: #DCD6D6
+    background-color: #DCD6D6;
+  }
+  .p-tabmenu-nav {
+    justify-content: space-between !important;
   }
 </style>

@@ -14,7 +14,7 @@
                  :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
                  currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
         <Column field="subject" header="Subject"></Column>
-        <Column field="predicate" header="Precidate"></Column>
+        <Column field="predicate" header="Predicate"></Column>
         <Column field="object" header="Object"></Column>
         <Column field="context" header="Context"></Column>
         <template #paginatorstart>

@@ -97,8 +97,6 @@ export default defineComponent({
       this.deleteRepositoryDialog = true
     },
     deleteRepository() {
-      this.repositories = this.repositories.filter(val => val.id.value !== this.repository.id.value)
-      this.deleteRepositoryDialog = false
       this.apiService.deleteRepository(this.repository.id.value)
       this.repository = {} as Repository
       this.$toast.add({severity:'success', summary: 'Successful', detail: 'Repository Deleted', life: 3000})
