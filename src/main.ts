@@ -14,6 +14,7 @@ import Column from "primevue/column";
 import Toast from "primevue/toast";
 import TabMenu from 'primevue/tabmenu';
 import Dropdown from 'primevue/dropdown';
+import Tooltip from 'primevue/tooltip';
 import ToggleButton from 'primevue/togglebutton';
 import ToastService from 'primevue/toastservice';
 import Dialog from "primevue/dialog";
@@ -25,6 +26,7 @@ app.use(PrimeVue)
 app.use(router)
 app.use(store)
 app.use(ToastService)
+app.directive('Tooltip', Tooltip)
 app.component('TabMenu', TabMenu)
 app.component('Textarea', Textarea)
 app.component('Dialog', Dialog)

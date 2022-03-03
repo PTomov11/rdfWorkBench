@@ -1,14 +1,13 @@
 export default class APIService {
 
 
-    getStatements() {
-        return fetch('http://localhost:8081/rdf4j-server/repositories/skuska/statements', {
+    async getStatements(repositoryName: string) {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
             method: 'GET',
             headers: {
-                'Accept': 'application/ld+json'
+                'Accept': 'application/rdf+json'
             }
         }).then(response => response.json())
-            .then(data => console.log(data));
     }
 
 
@@ -20,8 +19,8 @@ export default class APIService {
             }
         });
     }
-    deleteRepository(id: string) {
-        fetch('http://localhost:8081/rdf4j-server/repositories/' + id, {
+    deleteRepository(repositoryName: string) {
+        fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName, {
             method: 'DELETE',
         }).then(response => response)
     }

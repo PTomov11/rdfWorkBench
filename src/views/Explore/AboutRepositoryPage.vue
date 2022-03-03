@@ -4,21 +4,51 @@
 
   <div class="main">
 
-    <div class="summary-header">
-      Summary
+    <div>
+      <div class="summary-header">Summary</div>
+      <div class="summary-container">
+        <div class="summary">
+
+        </div>
+        <div class="summary">
+
+        </div>
+      </div>
     </div>
 
-    <div class="summary">
-
+    <div>
+      <div class="separator"></div>
     </div>
 
-    <div class="summary">
+    <div class=content-container>
+      <div>
+        <TabMenu :model="items" @tab-change="change"/>
+      </div>
+      <div v-if="activeTab === -1"/>
+      <div v-if="activeTab === 0">
+        <DataTable class="table" :value="types" stripedRows responsiveLayout="scroll" style="min-height: 390px">
+          <Column field="type.value" header="Name"></Column>
+        </DataTable>
+      </div>
+      <div v-if="activeTab === 1">
+        <DataTable :rows="10" class="table" :value="contexts" stripedRows responsiveLayout="scroll" style="min-height: 390px">
+          <Column field="contextID.value" header="Name"></Column>
+        </DataTable>
+      </div>
+      <div v-if="activeTab === 2" class="namespaces-tab">
+        <div>
+          <DataTable class="table" :value="namespaces" stripedRows responsiveLayout="scroll" style="min-height: 390px">
+            <Column field="prefix.value" header="Prefix"></Column>
+            <Column field="namespace.value" header="Namespace"></Column>
+          </DataTable>
+        </div>
+        <div>
+          <div class="filter">
 
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div class="separator"></div>
-
-    <TabMenu :model="items" />
     <router-view />
 
 
@@ -29,62 +59,120 @@
 import {defineComponent} from "vue";
 import TopBar from "@/components/global-components/TopBar.vue";
 import SideBar from "@/components/global-components/SideBar.vue";
+import {Context, Namespace, Type} from "@/views/Explore/types/ExploreTypes";
+import APIService from "@/services/APIService";
 
 export default defineComponent({
   name: "AboutRepositoryPage",
+  props: ['name'],
   components: {SideBar, TopBar},
   data() {
     return {
+      activeTab: -1,
       items: [
-        {label: 'Types', to: '/types'},
-        {label: 'Context', to: '/context'},
-        {label: 'Namespaces', to: '/namespaces'}
-      ]
+        {label: 'Types', to: {name: 'Types', params:{name:this.$store.state.selectedRepository}}},
+        {label: 'Context', to: {name: 'Context', params:{name:this.$store.state.selectedRepository}}},
+        {label: 'Namespaces', to: {name: 'Namespaces', params:{name:this.$store.state.selectedRepository}}}
+      ],
+      types: [] as Type[],
+      contexts: [] as Context[],
+      namespaces: [] as Namespace[],
+      apiService: null as unknown as APIService
+    }
+  },
+  created() {
+    this.apiService = new APIService()
+  },
+  methods: {
+    change(event: any) {
+      this.activeTab = event.index;
+      if (event.index === 0) {
+        this.apiService.getTypesOfRepository(this.$store.state.selectedRepository).then((data: Type[]) => this.types = data)
+      } else if (event.index === 1) {
+        this.apiService.getContextsOfRepository(this.$store.state.selectedRepository).then((data: Context[]) => this.contexts = data)
+      } else {
+        this.apiService.getNamespacesOfRepository(this.$store.state.selectedRepository).then((data: Namespace[]) => this.namespaces = data)
+      }
     }
   }
-
 })
 </script>
 
 <style lang="scss" scoped>
   .summary-header {
-    width: 100%;
     font-size: 70px;
     font-weight: bolder;
-    text-align: center;
     height: 100px;
-    margin-top: 10px;
+    text-align: center;
   }
   .summary {
     width: 700px;
     height: 150px;
     background-color: white;
     border-radius: 10px;
-    margin: 0 15px 0 75px;
   }
   .separator {
-    width: 100%;
     height: 30px;
     background-color: #01112C;
     margin-top: 30px;
   }
   .main {
     display: flex;
-    flex-wrap: wrap;
-    position: relative;
-    top: 90px;
-    left: 190px;
-    width: 90%;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute;
+    top: 100px;
+    left: 200px;
+    width: 89%;
     background-color: #DCD6D6;
   }
-  .p-component {
-    font-size: 2rem;
+  .summary-container {
+    display: flex;
+    justify-content: space-around;
   }
-  .p-tabmenu {
-    width: 100%;
+  .content-container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 20px 20px;
+    row-gap: 10px;
+  }
+  .filter {
+    padding: 30px 30px 30px 30px;
+    width: 500px;
+    height: 390px;
+    background-color: white;
+    border-radius: 10px;
+  }
+  .table {
+    min-width: 500px;
+  }
+  :deep(.p-tabmenu-nav) {
+    justify-content: space-between;
+    background: #DCD6D6;
+    border-bottom-width: 4px;
+  }
+  ::v-deep .p-tabmenuitem {
+    font-size: 35px;
+  }
+  ::v-deep .p-tabmenu .p-tabmenu-nav .p-highlight .p-menuitem-link {
+    background: #DCD6D6;
+    border-width: 0 0 4px 0;
+    border-color: #DA5800;
+    color: #6c757d;
+  }
+  ::v-deep .p-tabmenu .p-tabmenu-nav .p-menuitem-link {
     background-color: #DCD6D6;
   }
-  .p-tabmenu-nav {
-    justify-content: space-between !important;
+
+  ::v-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):focus {
+    box-shadow: none;
+  }
+  ::v-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):hover {
+    background-color: #DCD6D6;
+  }
+  .namespaces-tab {
+    justify-content: space-between;
+    flex-direction: row;
+    display: flex;
   }
 </style>

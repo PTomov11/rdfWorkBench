@@ -1,7 +1,7 @@
 export type Repository = {
     id: IdObject;
     title: IdObject;
-    location: IdObject;
+    uri: IdObject;
 };
 
 export type IdObject = {

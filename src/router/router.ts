@@ -19,32 +19,41 @@ const routes = [
     {
         path: '/repositories',
         name: 'RepositoriesPage',
-        component: RepositoriesPage
+        component: RepositoriesPage,
     },
     {
-        path: '/explore',
+        path: '/repositories/:name',
+        name: 'RepositoriesPageSelected',
+        component: RepositoriesPage,
+    },
+    {
+        path: '/repositories/:name/explore',
         name: 'ExplorePage',
-        component: ExplorePage
+        component: ExplorePage,
+        props: true
+    },
+
+    {
+        path: '/repositories/:name/about',
+        name: 'AboutRepositoryPage',
+        component: AboutRepositoryPage,
+        props: true,
+        children: []
     },
     {
-        path: '/about',
-        name: 'AboutRepositoryPage',
+        path: '/repositories/:name/about/types',
+        name: 'Types',
         component: AboutRepositoryPage
     },
     {
-        path: '/types',
-        name: 'Types',
-        component: Types
-    },
-    {
-        path: '/context',
+        path: '/repositories/:name/about/context',
         name: 'Context',
-        component: Context
+        component: AboutRepositoryPage
     },
     {
-        path: '/namespaces',
+        path: '/repositories/:name/about/namespaces',
         name: 'Namespaces',
-        component: Namespaces
+        component: AboutRepositoryPage
     },
     {
         path: '/query',
