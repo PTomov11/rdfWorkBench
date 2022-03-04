@@ -2,9 +2,8 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import Button from 'primevue/button'
-import './assets/global.css'
 import 'primevue/resources/themes/saga-blue/theme.css'       //theme
-import 'primevue/resources/primevue.min.css'                 //core css
+import 'primevue/resources/primevue.min.css'
 import 'primeicons/primeicons.css'                           //icons
 import InputText from 'primevue/inputtext';
 import MegaMenu from "primevue/megamenu";
@@ -20,6 +19,8 @@ import ToastService from 'primevue/toastservice';
 import Dialog from "primevue/dialog";
 import store from '../src/store/store';
 import Textarea from "primevue/textarea";
+import FileUpload from 'primevue/fileupload';
+
 
 const app = createApp(App)
 app.use(PrimeVue)
@@ -28,6 +29,7 @@ app.use(store)
 app.use(ToastService)
 app.directive('Tooltip', Tooltip)
 app.component('TabMenu', TabMenu)
+app.component('FileUpload', FileUpload)
 app.component('Textarea', Textarea)
 app.component('Dialog', Dialog)
 app.component('ToggleButton', ToggleButton)
@@ -39,3 +41,5 @@ app.component('DataTable', DataTable)
 app.component('Column', Column)
 app.component('Toast', Toast)
 app.mount('#app')
+
+require('./assets/global.css');//core css

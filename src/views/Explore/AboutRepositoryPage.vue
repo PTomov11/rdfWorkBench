@@ -5,7 +5,7 @@
   <div class="main">
 
     <div>
-      <div class="summary-header">Summary</div>
+      <div class="summary-header"><span>Summary</span></div>
       <div class="summary-container">
         <div class="summary">
 
@@ -100,10 +100,12 @@ export default defineComponent({
 
 <style lang="scss" scoped>
   .summary-header {
-    font-size: 70px;
+    font-size: 60px;
     font-weight: bolder;
     height: 100px;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .summary {
     width: 700px;
@@ -118,12 +120,13 @@ export default defineComponent({
   }
   .main {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     flex-direction: column;
     position: absolute;
     top: 100px;
     left: 200px;
     width: 89%;
+    min-height: 89%;
     background-color: #DCD6D6;
   }
   .summary-container {
@@ -139,7 +142,7 @@ export default defineComponent({
   .filter {
     padding: 30px 30px 30px 30px;
     width: 500px;
-    height: 390px;
+    height: 380px;
     background-color: white;
     border-radius: 10px;
   }
@@ -150,6 +153,7 @@ export default defineComponent({
     justify-content: space-between;
     background: #DCD6D6;
     border-bottom-width: 4px;
+
   }
   ::v-deep .p-tabmenuitem {
     font-size: 35px;
@@ -159,6 +163,7 @@ export default defineComponent({
     border-width: 0 0 4px 0;
     border-color: #DA5800;
     color: #6c757d;
+
   }
   ::v-deep .p-tabmenu .p-tabmenu-nav .p-menuitem-link {
     background-color: #DCD6D6;
@@ -169,6 +174,8 @@ export default defineComponent({
   }
   ::v-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):hover {
     background-color: #DCD6D6;
+    //padding-bottom: 18px;
+    border-width: 0 0 4px 0;
   }
   .namespaces-tab {
     justify-content: space-between;

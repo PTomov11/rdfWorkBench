@@ -38,7 +38,6 @@ const routes = [
         name: 'AboutRepositoryPage',
         component: AboutRepositoryPage,
         props: true,
-        children: []
     },
     {
         path: '/repositories/:name/about/types',
@@ -56,9 +55,9 @@ const routes = [
         component: AboutRepositoryPage
     },
     {
-        path: '/query',
+        path: '/repositories/:name/query',
         name: 'QueryPage',
-        component: QueryPage
+        component: QueryPage,
     },
     {
         path: '/update',

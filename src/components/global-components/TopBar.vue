@@ -6,8 +6,12 @@
         <p class="title">{{ title }}</p>
       </div>
       <div class="item">
-        <p class="info">RDF4J Server: Server</p>
-        <p class="info">Repository : {{ repositoryChanged }}</p>
+        <div>
+          <span class="info">RDF4J Server: Server</span>
+        </div>
+        <div>
+          <span class="info">Repository : {{ repositoryChanged }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -46,21 +50,23 @@ export default defineComponent({
   }
   .container {
     height: 100px;
+    display: flex;
+    align-items: center;
   }
   .item{
-    height: 100px;
-    width: 640px;
-    display: table-cell;
-    vertical-align: middle;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 15px;
   }
   .title {
     margin: 0 0 0 20px;
-    font-size: 40px;
+    font-size: 50px;
     color: white;
     font-weight: bold;
   }
   .info {
+    font-size: 25px;
     color: white;
-    margin: 16px 0 16px 200px;
   }
 </style>

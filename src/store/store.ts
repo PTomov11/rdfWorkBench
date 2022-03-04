@@ -3,7 +3,7 @@ import { createStore } from 'vuex'
 // Create a new store instance.
 const store = createStore({
     state: {
-        selectedRepository: '',
+        selectedRepository: 'skuska',
     },
     mutations: {
         SET_SELECTED_REPOSITORY(state, name) {
