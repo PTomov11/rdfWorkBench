@@ -136,7 +136,7 @@ export default defineComponent({
 <style scoped>
   .main {
     display: flex;
-    position: fixed;
+    position: absolute;
     justify-content: center;
     align-items: center;
     top: 100px;

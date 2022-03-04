@@ -1,6 +1,11 @@
 <template>
   <div class="side-nav">
-    <div class="ciara"></div>
+    <div>
+      <img  class="logo" :src="require('@/assets/rdf_logo2.png')">
+    </div>
+    <div>
+      <div class="ciara"></div>
+    </div>
     <div class="menu-item">
       <div v-if="activeSection === 'Repositories'" class="active"></div>
       <i class="pi pi-book icon"></i>
@@ -14,7 +19,7 @@
     </div>
     <div class="menu-item">
       <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'About'}" :to="{ name: 'AboutRepositoryPage', params: {name:this.$store.state.selectedRepository || ' '} }">About Repository</router-link>
-      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'Query'}" :to="{ name: 'QueryPage' }">Query</router-link>
+      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'Query'}" :to="{ name: 'QueryPage',params: {name:this.$store.state.selectedRepository || ' ' } }">Query</router-link>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'Update'" class="active"></div>
@@ -58,7 +63,9 @@ export default defineComponent({
     left: 0;
     background-color: #01112C; /* Black */
     /*overflow-x: hidden; !* Disable horizontal scroll *!*/
-    padding-top: 99px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 
   }
   .menu-item {

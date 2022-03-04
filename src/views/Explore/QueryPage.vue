@@ -4,19 +4,27 @@
 
   <div class="main">
 
-    <div>
-      <Button label="SAVED QUERIES" @click="openSavedQueries"></Button>
-      <div>
-        <Button label="EXECUTE" ></Button>
+    <div class="filter">
+      <div class="sub-filter1">
+        <Button label="SAVED QUERIES" @click="openSavedQueries"></Button>
+      </div>
+      <div class="sub-filter2">
+        <Button label="EXECUTE"></Button>
         <Button label="CLEAR" @click="clearEditor"></Button>
         <Button label="SAVE QUERY" @click="saveQuery"></Button>
         <InputText class="input" type="text" v-model="queryName" />
       </div>
     </div>
 
-    <Textarea rows="5" cols="30" class="editor" id="editor"></Textarea>
+    <div style="display:flex;justify-content: center">
+      <div>
+        <Textarea rows="5" cols="30" class="editor" id="editor"></Textarea>
+      </div>
+    </div>
 
-    <Dialog header="Create Repository" v-model:visible="displayModal" :style="{width: '700px'}" :modal="true">
+  </div>
+
+    <Dialog header="Select Query" v-model:visible="displayModal" :style="{width: '700px'}" :modal="true">
       <div class="card">
         <DataTable :value="savedQueries" responsiveLayout="scroll">
           <Column field="name" header="Name" :sortable="true"></Column>
@@ -30,7 +38,6 @@
       </div>
     </Dialog>
 
-  </div>
 
   <Dialog v-model:visible="deleteSavedQueryDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
     <div class="confirmation-content">
@@ -114,13 +121,42 @@ export default defineComponent({
 
 <style scoped>
   .main {
-    /*display: flex;*/
-    /*justify-content: center;*/
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
     position: absolute;
+    gap: 10px;
     top: 100px;
-    left: 201px;
-    width: 89.5%;
+    left: 200px;
+    width: 89%;
     height: 89%;
     background-color: #DCD6D6;
+    padding: 20px 20px 20px 20px;
+  }
+  .filter {
+    height: 100px;
+    display: flex;
+    flex-direction: row;
+    background-color: white;
+    border-radius: 10px;
+  }
+  .sub-filter1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+  }
+  .sub-filter2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 3;
+  }
+  :deep(.CodeMirror) {
+    height: 650px;
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 </style>

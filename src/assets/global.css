@@ -1,6 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Montserrat');
 
-body {
-    font-family: 'Open Sans';
-    background: #ece6d9;
+* {
+    font-family: Montserrat,serif;
+}
+/*Inpout fileds styles*/
+.input {
+    background-color: #DCD6D6;
+}
+/*Buttons styles*/
+.p-button-label{
+    font-weight: bold;
+
+}
+.p-button {
+    background-color: #6583A7;
+}
+.p-button:enabled:hover {
+    background-color: #0A2341;
+}
+.p-button:focus {
+    box-shadow: 0 0 0 0.2rem #566F8C;
+}
+/*Logo styles*/
+.logo {
+    width: 201px;
+    height: 95px;
 }

@@ -5,8 +5,14 @@
     <div>
 
       <div class="filter">
-        <span>Resource: </span>
-        <InputText class="input" type="text" v-model="resource" />
+        <div class="input-container">
+          <div style="width: 120px">
+            <span>Resource: </span>
+          </div>
+          <div>
+            <InputText class="input" type="text" v-model="resource" style="width: 400px"/>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -124,9 +130,11 @@ export default defineComponent({
   .table {
     width: 1550px;
   }
-  .input {
-    background-color: #DCD6D6;
-    width: 400px;
+  .input-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
   }
+
 
 </style>
