@@ -1,3 +1,5 @@
+import {IdObject} from "@/views/Repositories/types/RepositoriesTypes";
+
 export type SavedQuery = {
     name: string,
     value: string
@@ -9,8 +11,8 @@ export type Context = {
 }
 
 export type Namespace = {
-    prefix: string,
-    namespace: string
+    prefix: IdObject,
+    namespace: IdObject
 }
 
 export type Type = {
@@ -23,4 +25,8 @@ export type Statement = {
     predicate: string,
     object: string,
     context: string
+}
+export type Column = {
+    field: string,
+    header: string
 }

@@ -9,17 +9,17 @@
     <div class="menu-item">
       <div v-if="activeSection === 'Repositories'" class="active"></div>
       <i class="pi pi-book icon"></i>
-      <router-link v-if="this.$store.state.selectedRepository" class="section" :to="{ name: 'RepositoriesPageSelected',params: {name:this.$store.state.selectedRepository }}">Repositories</router-link>
+      <router-link v-if="this.$store.state.selectedRepository.id.value" class="section" :to="{ name: 'RepositoriesPageSelected',params: {name:this.$store.state.selectedRepository.id.value }}">Repositories</router-link>
       <router-link class="section" :to="{ name: 'RepositoriesPage'}" v-else>Repositories</router-link>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'Explore' || activeSection === 'About' || activeSection === 'Query'" class="active"></div>
       <i class="pi pi-compass icon"></i>
-      <router-link class="section" :to="{ name: 'ExplorePage', params: {name:this.$store.state.selectedRepository || ' '} }">Explore</router-link>
+      <router-link class="section" :to="{ name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value || ' '} }">Explore</router-link>
     </div>
     <div class="menu-item">
-      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'About'}" :to="{ name: 'AboutRepositoryPage', params: {name:this.$store.state.selectedRepository || ' '} }">About Repository</router-link>
-      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'Query'}" :to="{ name: 'QueryPage',params: {name:this.$store.state.selectedRepository || ' ' } }">Query</router-link>
+      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'About'}" :to="{ name: 'AboutRepositoryPage', params: {name:this.$store.state.selectedRepository.id.value || ' '} }">About Repository</router-link>
+      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'Query'}" :to="{ name: 'QueryPage',params: {name:this.$store.state.selectedRepository.id.value || ' ' } }">Query</router-link>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'Update'" class="active"></div>

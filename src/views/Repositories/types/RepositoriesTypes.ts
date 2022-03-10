@@ -8,3 +8,7 @@ export type IdObject = {
     type: string,
     value: string
 };
+
+export type SelectedItem = {
+    name: string
+}

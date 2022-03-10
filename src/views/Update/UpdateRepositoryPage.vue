@@ -164,6 +164,11 @@ export default defineComponent({
       mode: 'sparql',
     })
   },
+  methods: {
+    executeQuery() {
+      this.editor.setValue(" skuska")
+    }
+  }
 
 })
 </script>
