@@ -31,7 +31,7 @@ export default defineComponent({
   },
   computed: {
     repositoryChanged() {
-      return this.$store.state.selectedRepository
+      return this.$store.state.selectedRepository.id.value
     }
   }
 })
