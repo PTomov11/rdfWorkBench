@@ -98,13 +98,27 @@ export default class APIService {
     }
 
     async query(repositoryName: string, queryString: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?query=' + queryString, {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?subj=' + queryString, {
             method: 'GET',
             headers: {
                 'Accept': 'application/sparql-results+json',
             }
         }).then(response => response.json())
-            .then(data => data.results.bindings)
+            .then(data => console.log(data.results.bindings))
     }
+
+    //Delete all statements
+    async deleteAllStatements(repositoryName: string) {
+        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
+            method: 'DELETE'
+        })
+    }
+
+    async deleteSpecifiedStatements(repositoryName: string, parameter: string, value: string) {
+        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?${parameter}=${value}`, {
+            method: 'DELETE'
+        })
+    }
+
 
 }

@@ -77,12 +77,25 @@ export default class helperUtils {
                         }
                     }
                     if (!subjectMatchedNamespace) {
-                        endObject["subject"] = subject
+                        if (subject.includes("http")) {
+                            endObject["subject"] = "<" + subject + ">"
+                        } else {
+                            endObject["subject"] = subject
+                        }
                     } else if (!predicateMatchedNamespace) {
-                        endObject["predicate"] = predicate
+                        if (subject.includes("http")) {
+                            endObject["predicate"] = "<" + predicate + ">"
+                        } else {
+                            endObject["predicate"] = predicate
+                        }
                     } else if (!objectMatchedNamespace) {
-                        endObject["object"] = object.value
+                        if (subject.includes("http")) {
+                            endObject["object"] = "<" + object.value + ">"
+                        } else {
+                            endObject["object"] = object.value
+                        }
                     }
+                    console.log(endObject)
                     resultTriples.push(endObject)
                 })
             }
