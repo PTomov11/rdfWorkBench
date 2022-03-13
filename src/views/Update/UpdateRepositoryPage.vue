@@ -1,9 +1,9 @@
 <template>
+  <Toast/>
   <SideBar active-section="Update"></SideBar>
   <TopBar title="Update Repository" ></TopBar>
 
   <div class="main">
-
     <div class="buttons-content">
       <Button label="EXECUTE UPDATE" @click="executeQuery"></Button>
     </div>
@@ -90,7 +90,8 @@
                 <span>Subject: </span>
               </div>
               <div>
-                <InputText class="input" type="text" v-model="subject"/>
+                <InputText v-on:input="change(1)" v-if="notEmptyInput === 'subject' || notEmptyInput === ''" class="input" type="text" v-model="subject"/>
+                <InputText v-on:input="change(1)" v-else class="input" type="text" v-model="subject" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -98,7 +99,8 @@
                 <span>Predicate: </span>
               </div>
               <div>
-                <InputText class="input" type="text" v-model="predicate"/>
+                <InputText v-on:input="change(2)" v-if="notEmptyInput === 'predicate' || notEmptyInput === ''" class="input" type="text" v-model="predicate"/>
+                <InputText v-on:input="change(2)" v-else class="input" type="text" v-model="predicate" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -106,7 +108,8 @@
                 <span>Object: </span>
               </div>
               <div>
-                <InputText class="input" type="text" v-model="object"/>
+                <InputText v-on:input="change(3)" v-if="notEmptyInput === 'object' || notEmptyInput === ''" class="input" type="text" v-model="object"/>
+                <InputText v-on:input="change(3)" v-else class="input" type="text" v-model="object" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -117,15 +120,23 @@
                 <InputText class="input" type="text" v-model="contextDelete"/>
               </div>
             </div>
-            <Button label="REMOVE ALL" class="remove-all-button" @click="removeAll"></Button>
+            <Button label="REMOVE ALL" class="remove-all-button" @click="removeAllDialog"></Button>
           </div>
         </div>
       </div>
-
-
     </div>
-
   </div>
+
+  <Dialog v-model:visible="deleteAllStatementsDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
+    <div class="confirmation-content">
+      <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+      <span>Are you sure you want to delete <b>whole</b> repository?</span>
+    </div>
+    <template #footer>
+      <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteAllStatementsDialog = false"/>
+      <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="removeAll" />
+    </template>
+  </Dialog>
 
 </template>
 
@@ -134,10 +145,12 @@ import {defineComponent} from "vue";
 import SideBar  from "../../components/global-components/SideBar.vue";
 import TopBar from "../../components/global-components/TopBar.vue";
 import * as CodeMirror from "codemirror";
+import APIService from "@/services/APIService";
 
 export default defineComponent({
   name: "UpdateRepositoryPage",
-  components: {SideBar, TopBar},data() {
+  components: {SideBar, TopBar},
+  data() {
     return {
       content: '',
       baseUri: '',
@@ -155,8 +168,13 @@ export default defineComponent({
       object: '',
       contextDelete: '',
       editor: null as any,
-
+      apiService: null as unknown as APIService,
+      notEmptyInput: '' as string,
+      deleteAllStatementsDialog: false
     }
+  },
+  created() {
+    this.apiService = new APIService()
   },
   mounted() {
     this.editor = CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
@@ -167,6 +185,52 @@ export default defineComponent({
   methods: {
     executeQuery() {
       this.editor.setValue(" skuska")
+    },
+    async removeAll() {
+      await this.apiService.deleteAllStatements(this.$store.state.selectedRepository.id.value)
+      this.deleteAllStatementsDialog = false
+      this.$toast.add({severity:'success', summary: 'Successful', detail: 'All Statements Deleted', life: 3000})
+    },
+    change(event: number) {
+      if (event === 1) {
+        this.notEmptyInput = "subject"
+        if (this.subject === '') {
+          this.notEmptyInput = ''
+        }
+      } else if ( event === 2) {
+        this.notEmptyInput = "predicate"
+        if (this.predicate === '') {
+          this.notEmptyInput = ''
+        }
+      } else {
+        this.notEmptyInput = "object"
+        if (this.object === '') {
+          this.notEmptyInput = ''
+        }
+      }
+    },
+    removeAllDialog() {
+      this.deleteAllStatementsDialog = true
+    },
+    remove() {
+      if (this.subject !== '') {
+        this.apiService.deleteSpecifiedStatements(this.$store.state.selectedRepository.id.value, "subj", encodeURIComponent(this.subject))
+        this.subject = ''
+      } else if (this.predicate !== '') {
+        this.apiService.deleteSpecifiedStatements(this.$store.state.selectedRepository.id.value, "pred", encodeURIComponent(this.predicate))
+        this.predicate = ''
+      } else {
+        this.apiService.deleteSpecifiedStatements(this.$store.state.selectedRepository.id.value, "obj", encodeURIComponent(this.object))
+        this.object = ''
+      }
+      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Statements Deleted', life: 3000})
+
+    },
+    onUpload() {
+      console.log("Tui")
+    },
+    upload() {
+      console.log(this.notEmptyInput)
     }
   }
 
@@ -248,5 +312,8 @@ export default defineComponent({
     position: absolute;
     bottom: 30px;
     left: 30px;
+  }
+  .input {
+    width: 400px;
   }
 </style>

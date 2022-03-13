@@ -117,7 +117,7 @@ export default defineComponent({
   methods: {
     query(queryString: string) {
       this.resource = queryString
-      //this.apiService.query(this.name)
+      // this.apiService.query(this.name, )
     },
     downloadFile() {
       const blob = new Blob([this.jsonData], {type:"application/trig"})

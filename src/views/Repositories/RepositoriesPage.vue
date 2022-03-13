@@ -120,7 +120,6 @@ export default defineComponent({
   mounted() {
     this.loading = true;
     this.apiService.getListOfRepositories().then((data: Repository[]) => {
-      console.log(data)
       this.repositories = data
       this.loading = false
     })
