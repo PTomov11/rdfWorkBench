@@ -45,7 +45,7 @@
                 <span>Data format: </span>
               </div>
               <div>
-                <Dropdown v-model="selectedFormat" :options="formats" optionLabel="name" placeholder="Select a format" />
+                <Dropdown v-model="selectedFormat" :options="formats" optionLabel="name" placeholder="Select a format" optionValue="name" />
               </div>
             </div>
             <div class="input-container">
@@ -53,7 +53,8 @@
                 <span>RDF Data URL: </span>
               </div>
               <div>
-                <InputText class="input" type="text" v-model="url"/>
+                <InputText v-on:input="changeUploadTab(1)" v-on:blur="prepareForm(null)" v-if="selectedUploadType === 'URL' || selectedUploadType === ''" class="input" type="text" v-model="url"/>
+                <InputText v-on:input="changeUploadTab(1)" v-else class="input" type="text" v-model="url" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -61,15 +62,22 @@
                 <span>RDF Data File: </span>
               </div>
               <div>
-                <FileUpload mode="basic" name="demo[]" url="./upload.php" accept="image/*" :maxFileSize="1000000" @upload="onUpload" />
+                <FileUpload v-if="selectedUploadType === 'file' || selectedUploadType === ''" mode="basic" name="demo[]" :maxFileSize="1000000" :customUpload="true" @uploader="onUpload" @select="prepareForm"/>
+                <FileUpload v-else mode="basic" name="demo[]" :maxFileSize="1000000" :customUpload="true" @uploader="onUpload" @select="prepareForm" :disabled="true"/>
               </div>
+              <div class="field-checkbox">
+                <Checkbox v-model="useBaseURIAsContext" :binary="true"/>
+                <label> use base URI as context identifier</label>
+              </div>
+
             </div>
             <div class="input-container">
               <div style="width: 120px">
                 <span>RDF Content: </span>
               </div>
               <div>
-                <Textarea v-model="areaContent" :autoResize="true" rows="3" cols="30" />
+                <Textarea v-on:input="changeUploadTab(3)" v-if="selectedUploadType === 'Content' || selectedUploadType === ''" v-model="areaContent" :autoResize="true" rows="3" cols="30" />
+                <Textarea v-on:input="changeUploadTab(3)" v-else v-model="areaContent" :autoResize="true" rows="3" cols="30" disabled />
               </div>
             </div>
           </div>
@@ -90,8 +98,8 @@
                 <span>Subject: </span>
               </div>
               <div>
-                <InputText v-on:input="change(1)" v-if="notEmptyInput === 'subject' || notEmptyInput === ''" class="input" type="text" v-model="subject"/>
-                <InputText v-on:input="change(1)" v-else class="input" type="text" v-model="subject" disabled/>
+                <InputText v-on:input="changeDeleteTab(1)" v-if="notEmptyDeleteInput === 'subject' || notEmptyDeleteInput === ''" class="input" type="text" v-model="subject"/>
+                <InputText v-on:input="changeDeleteTab(1)" v-else class="input" type="text" v-model="subject" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -99,8 +107,8 @@
                 <span>Predicate: </span>
               </div>
               <div>
-                <InputText v-on:input="change(2)" v-if="notEmptyInput === 'predicate' || notEmptyInput === ''" class="input" type="text" v-model="predicate"/>
-                <InputText v-on:input="change(2)" v-else class="input" type="text" v-model="predicate" disabled/>
+                <InputText v-on:input="changeDeleteTab(2)" v-if="notEmptyDeleteInput === 'predicate' || notEmptyDeleteInput === ''" class="input" type="text" v-model="predicate"/>
+                <InputText v-on:input="changeDeleteTab(2)" v-else class="input" type="text" v-model="predicate" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -108,8 +116,8 @@
                 <span>Object: </span>
               </div>
               <div>
-                <InputText v-on:input="change(3)" v-if="notEmptyInput === 'object' || notEmptyInput === ''" class="input" type="text" v-model="object"/>
-                <InputText v-on:input="change(3)" v-else class="input" type="text" v-model="object" disabled/>
+                <InputText v-on:input="changeDeleteTab(3)" v-if="notEmptyDeleteInput === 'object' || notEmptyDeleteInput === ''" class="input" type="text" v-model="object"/>
+                <InputText v-on:input="changeDeleteTab(3)" v-else class="input" type="text" v-model="object" disabled/>
               </div>
             </div>
             <div class="input-container">
@@ -146,6 +154,7 @@ import SideBar  from "../../components/global-components/SideBar.vue";
 import TopBar from "../../components/global-components/TopBar.vue";
 import * as CodeMirror from "codemirror";
 import APIService from "@/services/APIService";
+import helperUtils from "@/services/helperUtils";
 
 export default defineComponent({
   name: "UpdateRepositoryPage",
@@ -169,12 +178,18 @@ export default defineComponent({
       contextDelete: '',
       editor: null as any,
       apiService: null as unknown as APIService,
-      notEmptyInput: '' as string,
-      deleteAllStatementsDialog: false
+      helperUtils: null as unknown as helperUtils,
+      notEmptyDeleteInput: '' as string,
+      selectedUploadType: '' as string,
+      deleteAllStatementsDialog: false,
+      useBaseURIAsContext: false,
+      fileToUpload: null as unknown as File,
+      fileType: '' as string
     }
   },
   created() {
     this.apiService = new APIService()
+    this.helperUtils = new helperUtils()
   },
   mounted() {
     this.editor = CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
@@ -191,21 +206,34 @@ export default defineComponent({
       this.deleteAllStatementsDialog = false
       this.$toast.add({severity:'success', summary: 'Successful', detail: 'All Statements Deleted', life: 3000})
     },
-    change(event: number) {
+    changeDeleteTab(event: number) {
       if (event === 1) {
-        this.notEmptyInput = "subject"
+        this.notEmptyDeleteInput = "subject"
         if (this.subject === '') {
-          this.notEmptyInput = ''
+          this.notEmptyDeleteInput = ''
         }
       } else if ( event === 2) {
-        this.notEmptyInput = "predicate"
+        this.notEmptyDeleteInput = "predicate"
         if (this.predicate === '') {
-          this.notEmptyInput = ''
+          this.notEmptyDeleteInput = ''
         }
       } else {
-        this.notEmptyInput = "object"
+        this.notEmptyDeleteInput = "object"
         if (this.object === '') {
-          this.notEmptyInput = ''
+          this.notEmptyDeleteInput = ''
+        }
+      }
+    },
+    changeUploadTab(event: number) {
+      if (event === 1) {
+        this.selectedUploadType = 'URL'
+        if (this.url === '') {
+          this.selectedUploadType = ''
+        }
+      } else if ( event === 3) {
+        this.selectedUploadType = 'Content'
+        if (this.areaContent === '') {
+          this.selectedUploadType = ''
         }
       }
     },
@@ -226,11 +254,50 @@ export default defineComponent({
       this.$toast.add({severity:'success', summary: 'Successful', detail: 'Statements Deleted', life: 3000})
 
     },
-    onUpload() {
-      console.log("Tui")
+    prepareForm(event: any) {
+      if (event === null) {
+        this.baseUri = this.url
+        if (this.url === '') {
+          this.contextAdd = ''
+          this.selectedFormat = ''
+        } else {
+          if (this.useBaseURIAsContext) {
+            this.contextAdd = '<' + this.baseUri + '>'
+          }
+          this.selectedFormat = 'Turtle'
+        }
+
+      } else {
+        const fakePath = 'file://C:/fakepath/' + event.files[0].name
+        this.baseUri = fakePath
+        if (this.useBaseURIAsContext) {
+          this.contextAdd = '<' + this.baseUri + '>'
+        }
+        this.selectedUploadType = 'file'
+        this.fileType = event.files[0].name.substr(event.files[0].name.indexOf('.'))
+        this.fileToUpload = event.files[0]
+      }
+
     },
-    upload() {
-      console.log(this.notEmptyInput)
+
+    async onUpload(event: any) {
+      console.log(event.files[0])
+      if (this.contextAdd === '') {
+        await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat(this.fileType), this.fileToUpload, '', 'null')
+      } else {
+        await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat(this.fileType), this.fileToUpload, '', encodeURIComponent(this.contextAdd))
+      }
+    },
+    async upload() {
+      // TODO: pridat checkbox ci pridat alebo nahradit data
+      if (this.url !== '') {
+        const content = await fetch(this.url).then((response) => response.text())
+        if (this.contextAdd === '') {
+          await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat('.ttl') , null, content,  'null')
+        } else {
+          await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat('.ttl') , null, content,  encodeURIComponent(this.contextAdd))
+        }
+      }
     }
   }
 

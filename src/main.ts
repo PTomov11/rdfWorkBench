@@ -20,6 +20,7 @@ import Dialog from "primevue/dialog";
 import store from '../src/store/store';
 import Textarea from "primevue/textarea";
 import FileUpload from 'primevue/fileupload';
+import Checkbox from 'primevue/checkbox';
 
 
 const app = createApp(App)
@@ -27,8 +28,9 @@ app.use(PrimeVue)
 app.use(router)
 app.use(store)
 app.use(ToastService)
-app.directive('Tooltip', Tooltip)
+app.directive('tooltip', Tooltip)
 app.component('TabMenu', TabMenu)
+app.component('Checkbox', Checkbox)
 app.component('FileUpload', FileUpload)
 app.component('Textarea', Textarea)
 app.component('Dialog', Dialog)

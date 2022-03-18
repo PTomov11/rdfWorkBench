@@ -9,6 +9,15 @@ export default class APIService {
         }).then(response => response.json())
     }
 
+    async getStatementsForDownload(repositoryName: string, dataFormat: string) {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
+            method: 'GET',
+            headers: {
+                'Accept': `${dataFormat}`
+            }
+        }).then(response => response.text())
+    }
+
 
     async createRepository(id: string, title: string, persist: boolean, delay: number, store: string) {
         await fetch('http://localhost:8081/rdf4j-server/repositories/' + id, {
@@ -107,7 +116,7 @@ export default class APIService {
             .then(data => console.log(data.results.bindings))
     }
 
-    //Delete all statements
+    //Delete statements
     async deleteAllStatements(repositoryName: string) {
         await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
             method: 'DELETE'
@@ -120,5 +129,14 @@ export default class APIService {
         })
     }
 
-
+    //Update statements
+    async updateRepositoryStatements(repositoryName: string, type: string, file: any, content: string, context: string) {
+        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?context=${context}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': type,
+            },
+            body: file === null ? content : file
+        })
+    }
 }
