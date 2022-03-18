@@ -1,6 +1,5 @@
 <template>
-  <SideBar active-section="About"></SideBar>
-  <TopBar title="About Repository" ></TopBar>
+  <MenuLayout title="About Repository" active-section="About"></MenuLayout>
 
   <div class="main">
     <Toast/>
@@ -128,16 +127,15 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import TopBar from "@/components/global-components/TopBar.vue";
-import SideBar from "@/components/global-components/SideBar.vue";
 import {Context, Namespace, Type} from "@/views/Explore/types/ExploreTypes";
 import APIService from "@/services/APIService";
-import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
+import {SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
+import MenuLayout from "@/components/global-components/MenuLayout.vue";
 
 export default defineComponent({
   name: "AboutRepositoryPage",
   props: ['name'],
-  components: {SideBar, TopBar},
+  components: {MenuLayout},
   data() {
     return {
       activeTab: -1,

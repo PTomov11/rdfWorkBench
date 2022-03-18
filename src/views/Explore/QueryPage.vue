@@ -1,7 +1,6 @@
 <template>
   <Toast/>
-  <SideBar active-section="Query"></SideBar>
-  <TopBar title="Query Repository" ></TopBar>
+  <MenuLayout title="Query Repository" active-section="Query"></MenuLayout>
 
   <div class="main">
 
@@ -99,14 +98,13 @@ import {Column, SavedQuery} from "@/views/Explore/types/ExploreTypes";
 import 'codemirror/theme/darcula.css'
 import 'codemirror/mode/sparql/sparql'
 import {defineComponent} from "vue";
-import TopBar from "@/components/global-components/TopBar.vue";
-import SideBar from "@/components/global-components/SideBar.vue";
 import APIService from "@/services/APIService";
 import helperUtils from "@/services/helperUtils";
+import MenuLayout from "@/components/global-components/MenuLayout.vue";
 
 export default defineComponent({
   name: "Query",
-  components: {SideBar, TopBar},
+  components: {MenuLayout},
   data() {
     return {
       queryResults: [] as any,
