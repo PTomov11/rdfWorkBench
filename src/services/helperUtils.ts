@@ -1,5 +1,5 @@
 import {Column, Namespace, Statement} from "@/views/Explore/types/ExploreTypes";
-
+import { DataFormat } from "@/views/Update/types/UpdateTypes";
 export default class helperUtils {
 
     prepareColumnsOfQuery(data: any): Column[] {
@@ -47,17 +47,19 @@ export default class helperUtils {
     }
 
     prepareStatements(data: any, namespaces: Namespace[]): Statement[] {
+        console.log(data)
         const resultTriples = [] as Statement[]
         for (const subject in data) {
             for(const predicate in data[subject]) {
                 const array = data[subject][predicate]
-
                 array.forEach((object: any) =>{
+                    const hasContext = this.hasContext(object)
                     const endObject = {
                         subject: '',
                         predicate: '',
                         object: '',
-                        context: object.graphs[0]
+                        // TODO: nemusi but zadany context pri statemente
+                        context: hasContext ? object.graphs[0] : ''
                     } as Statement
                     let subjectMatchedNamespace = false
                     let predicateMatchedNamespace = false
@@ -78,29 +80,71 @@ export default class helperUtils {
                     }
                     if (!subjectMatchedNamespace) {
                         if (subject.includes("http")) {
-                            endObject["subject"] = "<" + subject + ">"
+                            // endObject["subject"] = "<" + subject + ">"
+                            endObject["subject"] = subject
                         } else {
                             endObject["subject"] = subject
                         }
-                    } else if (!predicateMatchedNamespace) {
-                        if (subject.includes("http")) {
-                            endObject["predicate"] = "<" + predicate + ">"
+                    }
+                    if (!predicateMatchedNamespace) {
+                        if (predicate.includes("http")) {
+                            // endObject["predicate"] = "<" + predicate + ">"
+                            endObject["predicate"] = predicate
                         } else {
                             endObject["predicate"] = predicate
                         }
-                    } else if (!objectMatchedNamespace) {
-                        if (subject.includes("http")) {
-                            endObject["object"] = "<" + object.value + ">"
-                        } else {
-                            endObject["object"] = object.value
+                    }
+                    if (!objectMatchedNamespace) {
+                        if (object.type === "uri") {
+                            endObject["object"] = `<${object.value}>`
+                            // endObject["object"] = object.value
+                        } else if (object.type === "literal"){
+                            endObject["object"] = `"${object.value}"`
                         }
                     }
-                    console.log(endObject)
                     resultTriples.push(endObject)
                 })
             }
         }
+
         return resultTriples
+    }
+
+    hasContext(object: any): boolean {
+        if (object.type === "uri") {
+            return Object.keys(object).length > 2
+        } else {
+            return Object.keys(object).length > 3
+        }
+    }
+
+    findDataFormat(type: string): string {
+        switch (type) {
+            case '.ttl': {
+                return DataFormat.TURTLE
+            }
+            case '.rdf': {
+                return DataFormat.RDFXML
+            }
+            case '.nt': {
+                return DataFormat.NTRIPLES
+            }
+            case '.nq': {
+                return DataFormat.NQUADS
+            }
+            case '.jsonld': {
+                return DataFormat.JSONLD
+            }
+            case '.rj': {
+                return DataFormat.RDFJSON
+            }
+            case '.trig': {
+                return DataFormat.TRIG
+            }
+            default: {
+                return ""
+            }
+        }
     }
 
 }

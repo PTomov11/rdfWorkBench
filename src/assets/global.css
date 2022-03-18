@@ -33,3 +33,7 @@
 .p-paginator {
     border-radius: 10px;
 }
+
+.p-tooltip {
+    max-width: 500px;
+}

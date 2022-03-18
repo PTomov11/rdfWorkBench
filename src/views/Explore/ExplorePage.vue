@@ -34,6 +34,7 @@
         <template #body="slotProps">
           <router-link v-if="slotProps.data.subject.length > 45" @click="query(slotProps.data.subject)" :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.subject}}" v-tooltip.right="{ value: slotProps.data.subject }">{{truncate(slotProps.data.subject, 45, '...')}}</router-link>
           <router-link v-else @click="query(slotProps.data.subject)" :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.subject}}">{{slotProps.data.subject}}</router-link>
+          <Button icon="pi pi-copy" @click="copyToClipboard" style="width: 20px; height: 20px; margin-left: 2px;position: absolute" />
         </template>
       </Column>
       <Column header="Predicate">
@@ -74,11 +75,11 @@ import APIService from "@/services/APIService";
 import {Statement, Type} from "@/views/Explore/types/ExploreTypes";
 import helperUtils from "@/services/helperUtils";
 
-
 export default defineComponent({
   name: "ExplorePage",
   props: ['name'],
   components: {TopBar, SideBar},
+
   data() {
     return {
       tableData: [] as Statement[],
@@ -86,13 +87,13 @@ export default defineComponent({
       apiService: null as unknown as APIService,
       helperUtils: null as unknown as helperUtils,
       loading: false,
-      selectedFormat: '',
+      selectedFormat: '' as any,
       formats: [
-        {name: 'Turtle'},
-        {name: 'RDF/JSON'},
-        {name: 'TriG'},
+        {name: 'TURTLE', extension: '.ttl'},
+        {name: 'RDF/JSON', extension: '.rj'},
+        {name: 'TriG', extension: '.trig'},
       ],
-      jsonData: null as any
+      downloadData: null as any
     }
   },
   created() {
@@ -101,15 +102,8 @@ export default defineComponent({
   },
   mounted() {
     this.loading = true
-    // download mock
-    // this.apiService.getStatements(this.name).then(data => {
-    //   this.jsonData = data
-    //   console.log(this.jsonData)
-    //   console.log(JSON.stringify(this.jsonData))
-    // })
     this.apiService.getStatements(this.name).then(data => {
       const namespaces = this.$store.state.namespaces
-      this.jsonData = data
       this.tableData = this.helperUtils.prepareStatements(data, namespaces)
       this.loading = false
     })
@@ -119,14 +113,16 @@ export default defineComponent({
       this.resource = queryString
       // this.apiService.query(this.name, )
     },
-    downloadFile() {
-      const blob = new Blob([this.jsonData], {type:"application/trig"})
+    async downloadFile() {
+      const dataFormat = this.helperUtils.findDataFormat(this.selectedFormat.extension)
+      const data = await this.apiService.getStatementsForDownload(this.name, dataFormat)
+      const blob = new Blob([data], {type:dataFormat})
       const href = URL.createObjectURL(blob)
 
       const a = Object.assign(document.createElement("a"), {
         href,
         style: "display:none",
-        download: "file.trig"
+        download: `file${this.selectedFormat.extension}`
       })
 
       a.click()
