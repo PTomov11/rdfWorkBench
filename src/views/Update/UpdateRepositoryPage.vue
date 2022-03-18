@@ -1,7 +1,6 @@
 <template>
   <Toast/>
-  <SideBar active-section="Update"></SideBar>
-  <TopBar title="Update Repository" ></TopBar>
+  <MenuLayout title="Update Repository" active-section="Update"></MenuLayout>
 
   <div class="main">
     <div class="buttons-content">
@@ -150,15 +149,14 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import SideBar  from "../../components/global-components/SideBar.vue";
-import TopBar from "../../components/global-components/TopBar.vue";
 import * as CodeMirror from "codemirror";
 import APIService from "@/services/APIService";
 import helperUtils from "@/services/helperUtils";
+import MenuLayout from "@/components/global-components/MenuLayout.vue";
 
 export default defineComponent({
   name: "UpdateRepositoryPage",
-  components: {SideBar, TopBar},
+  components: {MenuLayout},
   data() {
     return {
       content: '',
@@ -379,8 +377,5 @@ export default defineComponent({
     position: absolute;
     bottom: 30px;
     left: 30px;
-  }
-  .input {
-    width: 400px;
   }
 </style>

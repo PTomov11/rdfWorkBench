@@ -1,6 +1,6 @@
 <template>
-  <SideBar active-section="Explore"></SideBar>
-  <TopBar title="Explore" ></TopBar>
+  <MenuLayout title="Explore" active-section="Explore"></MenuLayout>
+
   <div class="main">
 
     <div class="filter">
@@ -69,16 +69,15 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import SideBar  from "../../components/global-components/SideBar.vue";
-import TopBar from "@/components/global-components/TopBar.vue";
 import APIService from "@/services/APIService";
 import {Statement, Type} from "@/views/Explore/types/ExploreTypes";
 import helperUtils from "@/services/helperUtils";
+import MenuLayout from "@/components/global-components/MenuLayout.vue";
 
 export default defineComponent({
   name: "ExplorePage",
   props: ['name'],
-  components: {TopBar, SideBar},
+  components: {MenuLayout},
 
   data() {
     return {

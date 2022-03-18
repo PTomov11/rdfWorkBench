@@ -1,7 +1,6 @@
 <template>
   <Toast/>
-  <SideBar active-section="Repositories"></SideBar>
-  <TopBar title="Repositories"></TopBar>
+  <MenuLayout title="Repositories" active-section="Repositories"></MenuLayout>
 
   <div class="main">
     <div class="item">
@@ -89,12 +88,12 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import APIService from "@/services/APIService.ts";
-import SideBar from "@/components/global-components/SideBar.vue";
-import TopBar from "@/components/global-components/TopBar.vue";
 import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
+import MenuLayout from "@/components/global-components/MenuLayout.vue";
+
 export default defineComponent({
   name: "RepositoriesPage",
-  components: {TopBar, SideBar},
+  components: {MenuLayout},
   data() {
     return {
       selectedStore: {} as SelectedItem,
