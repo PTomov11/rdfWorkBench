@@ -42,6 +42,7 @@ app.component('MegaMenu', MegaMenu)
 app.component('DataTable', DataTable)
 app.component('Column', Column)
 app.component('Toast', Toast)
+app.directive('tooltip', Tooltip)
 app.mount('#app')
 
 require('./assets/global.css');//core css

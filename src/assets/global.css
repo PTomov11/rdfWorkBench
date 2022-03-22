@@ -3,15 +3,36 @@
 * {
     font-family: Montserrat,serif;
 }
-/*Inpout fileds styles*/
+
+/*Input fields styles*/
 .input {
     width: 400px;
     background-color: #DCD6D6;
 }
+
+.p-inputtext:enabled:focus {
+    border-color: #0A2341;
+    box-shadow: 0 0 0 0.2rem #6583A7;
+}
+
+.p-inputtext:enabled:hover {
+    border-color: #0A2341;
+}
+
+/*Dropdown styles*/
+.p-dropdown:not(.p-disabled):hover {
+    border-color:  #0A2341;
+}
+.p-dropdown:not(.p-disabled):focus {
+    border-color:  #0A2341;
+}
+.p-dropdown:not(.p-disabled).p-focus {
+    box-shadow: 0 0 0 0.2rem #6583A7;
+    border-color:  #0A2341;
+}
 /*Buttons styles*/
 .p-button-label{
     font-weight: bold;
-
 }
 .p-button {
     background-color: #6583A7;
@@ -22,6 +43,22 @@
 .p-button:focus {
     box-shadow: 0 0 0 0.2rem #566F8C;
 }
+.p-fileupload-choose:not(.p-disabled):hover {
+    background: #0A2341;
+}
+.p-checkbox .p-checkbox-box.p-highlight {
+    background: #6583A7;
+}
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box:hover {
+    box-shadow: 0 0 0 0.2rem #566F8C;
+    border-color: #0A2341;
+}
+.help-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
 /*Logo styles*/
 .logo {
     width: 201px;
@@ -38,3 +75,37 @@
 .p-tooltip {
     max-width: 500px;
 }
+
+/*Dialog styles*/
+.p-dialog .p-dialog-header {
+    color: white;
+    background: #0A2341;
+}
+
+.pi {
+    color: white;
+}
+
+.p-dialog .p-dialog-header .p-dialog-header-icon:enabled:hover {
+    color: white;
+    background: #0A2341;
+}
+
+.text-header {
+    font-weight: bolder;
+    font-size: 16px;
+}
+
+
+
+/*Table styles*/
+/*.p-datatable .p-sortable-column.p-highlight {*/
+/*    color: #6583A7;*/
+/*}*/
+/*.p-datatable .p-sortable-column:focus {*/
+/*    box-shadow: inset 0 0 0 0.15rem  #566F8C;*/
+/*    -moz-border-radius-topleft: 10px;*/
+/*}*/
+/*.p-datatable .p-sortable-column.p-highlight:hover {*/
+/*    color: #6583A7;*/
+/*}*/

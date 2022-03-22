@@ -22,10 +22,11 @@
         </div>
         <div>
           <div class="filter">
+            <!--            <Button icon="pi pi-question" class="p-button-rounded help-button" @click="showHelp"/>-->
             <Button label="UPLOAD" class="upload-button" @click="upload"></Button>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Base URI: </span>
+                <span class="text-header">Base URI: </span>
               </div>
               <div>
                 <InputText class="input" type="text" v-model="baseUri"/>
@@ -33,7 +34,7 @@
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Context: </span>
+                <span class="text-header">Context: </span>
               </div>
               <div>
                 <InputText class="input" type="text" v-model="contextAdd"/>
@@ -41,28 +42,32 @@
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Data format: </span>
+                <span class="text-header">Data format: </span>
               </div>
               <div>
-                <Dropdown v-model="selectedFormat" :options="formats" optionLabel="name" placeholder="Select a format" optionValue="name" />
+                <Dropdown v-model="selectedFormat" :options="formats" optionLabel="name" placeholder="Select a format"
+                          optionValue="name"/>
               </div>
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>RDF Data URL: </span>
+                <span class="text-header">RDF Data URL: </span>
               </div>
               <div>
-                <InputText v-on:input="changeUploadTab(1)" v-on:blur="prepareForm(null)" v-if="selectedUploadType === 'URL' || selectedUploadType === ''" class="input" type="text" v-model="url"/>
+                <InputText v-on:input="changeUploadTab(1)" v-on:blur="prepareForm(null)"
+                           v-if="selectedUploadType === 'URL' || selectedUploadType === ''" class="input" type="text"
+                           v-model="url"/>
                 <InputText v-on:input="changeUploadTab(1)" v-else class="input" type="text" v-model="url" disabled/>
               </div>
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>RDF Data File: </span>
+                <span class="text-header">RDF Data File: </span>
               </div>
               <div>
-                <FileUpload v-if="selectedUploadType === 'file' || selectedUploadType === ''" mode="basic" name="demo[]" :maxFileSize="1000000" :customUpload="true" @uploader="onUpload" @select="prepareForm"/>
-                <FileUpload v-else mode="basic" name="demo[]" :maxFileSize="1000000" :customUpload="true" @uploader="onUpload" @select="prepareForm" :disabled="true"/>
+                <FileUpload v-if="selectedUploadType === 'file' || selectedUploadType === ''" mode="basic" name="demo[]"
+                            :maxFileSize="1000000" :customUpload="true" @uploader="onUpload" @select="prepareForm"/>
+                <FileUpload v-else mode="basic" :disabled="true"/>
               </div>
               <div class="field-checkbox">
                 <Checkbox v-model="useBaseURIAsContext" :binary="true"/>
@@ -72,17 +77,19 @@
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>RDF Content: </span>
+                <span class="text-header">RDF Content: </span>
               </div>
               <div>
-                <Textarea v-on:input="changeUploadTab(3)" v-if="selectedUploadType === 'Content' || selectedUploadType === ''" v-model="areaContent" :autoResize="true" rows="3" cols="30" />
-                <Textarea v-on:input="changeUploadTab(3)" v-else v-model="areaContent" :autoResize="true" rows="3" cols="30" disabled />
+                <Textarea v-on:input="changeUploadTab(3)"
+                          v-if="selectedUploadType === 'Content' || selectedUploadType === ''" v-model="areaContent"
+                          :autoResize="true" rows="3" cols="30"/>
+                <Textarea v-on:input="changeUploadTab(3)" v-else v-model="areaContent" :autoResize="true" rows="3"
+                          cols="30" disabled/>
               </div>
             </div>
           </div>
         </div>
       </div>
-
 
       <div class="modifie-content">
         <div>
@@ -91,58 +98,81 @@
         </div>
         <div>
           <div class="filter">
+            <Button icon="pi pi-question" class="p-button-rounded help-button" @click="showHelp"/>
             <Button label="REMOVE" class="remove-button" @click="remove"></Button>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Subject: </span>
+                <span class="text-header">Subject: </span>
               </div>
               <div>
-                <InputText v-on:input="changeDeleteTab(1)" v-if="notEmptyDeleteInput === 'subject' || notEmptyDeleteInput === ''" class="input" type="text" v-model="subject"/>
+                <InputText v-on:input="changeDeleteTab(1)"
+                           v-if="notEmptyDeleteInput === 'subject' || notEmptyDeleteInput === ''" class="input"
+                           type="text" v-model="subject"/>
                 <InputText v-on:input="changeDeleteTab(1)" v-else class="input" type="text" v-model="subject" disabled/>
               </div>
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Predicate: </span>
+                <span class="text-header">Predicate: </span>
               </div>
               <div>
-                <InputText v-on:input="changeDeleteTab(2)" v-if="notEmptyDeleteInput === 'predicate' || notEmptyDeleteInput === ''" class="input" type="text" v-model="predicate"/>
+                <InputText v-on:input="changeDeleteTab(2)"
+                           v-if="notEmptyDeleteInput === 'predicate' || notEmptyDeleteInput === ''" class="input"
+                           type="text" v-model="predicate"/>
                 <InputText v-on:input="changeDeleteTab(2)" v-else class="input" type="text" v-model="predicate" disabled/>
               </div>
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Object: </span>
+                <span class="text-header">Object: </span>
               </div>
               <div>
-                <InputText v-on:input="changeDeleteTab(3)" v-if="notEmptyDeleteInput === 'object' || notEmptyDeleteInput === ''" class="input" type="text" v-model="object"/>
+                <InputText v-on:input="changeDeleteTab(3)"
+                           v-if="notEmptyDeleteInput === 'object' || notEmptyDeleteInput === ''" class="input"
+                           type="text" v-model="object"/>
                 <InputText v-on:input="changeDeleteTab(3)" v-else class="input" type="text" v-model="object" disabled/>
               </div>
             </div>
             <div class="input-container">
               <div style="width: 120px">
-                <span>Context: </span>
+                <span class="text-header">Context: </span>
               </div>
               <div>
                 <InputText class="input" type="text" v-model="contextDelete"/>
               </div>
             </div>
-            <Button label="REMOVE ALL" class="remove-all-button" @click="removeAllDialog"></Button>
+            <Button label="REMOVE ALL" class="remove-all-button" @click="removeAllDialog"/>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <Dialog v-model:visible="deleteAllStatementsDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
-    <div class="confirmation-content">
-      <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-      <span>Are you sure you want to delete <b>whole</b> repository?</span>
+  <Dialog v-model:visible="deleteAllStatementsDialog" header="Confirm" :modal="true">
+    <div style="display: flex;align-items: center;padding-top: 25px">
+      <i class="pi pi-exclamation-triangle mr-3" style="font-size: 5rem;color: red"/>
+      <span style="font-size: 20px;font-weight: lighter">Are you sure you want to delete <b>whole</b> repository?</span>
     </div>
     <template #footer>
-      <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteAllStatementsDialog = false"/>
-      <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="removeAll" />
+      <Button label="No" icon="pi pi-times" @click="deleteAllStatementsDialog = false"/>
+      <Button label="Yes" icon="pi pi-check" @click="removeAll"/>
     </template>
+  </Dialog>
+
+  <Dialog v-model:visible="isShowHelp" :style="{width: '800px'}" header="Help" :modal="true">
+    <div
+        style="display: flex;align-items: flex-start;padding-top: 25px;justify-content: center; flex-direction: column">
+      <span>Example values in N-Triples encoding are: </span>
+      <ul>
+        <li>URI: &lt;http://foo.com/bar></li>
+        <li>BNode: _:nodeID</li>
+        <li>Literal: "Hello" , "Hello"@en and "Hello"^^&lt;http://bar.com/foo></li>
+      </ul>
+      <span><b>Subject</b> can be: URI</span>
+      <span><b>Predicate</b> can be: URI</span>
+      <span><b>Object</b> can be: URI, BNode, Literal</span>
+      <span><b>Context</b> can be: URI, BNode</span>
+    </div>
   </Dialog>
 
 </template>
@@ -166,9 +196,15 @@ export default defineComponent({
       url: '',
       areaContent: '',
       formats: [
-        {name: 'Turtle'},
-        {name: 'RDF/JSON'},
-        {name: 'TriG'},
+        {name: 'TURTLE', extension: '.ttl'},
+        {name: 'RDF/JSON', extension: '.rj'},
+        {name: 'RDF/XML', extension: '.rdf'},
+        {name: 'N-TRIPLES', extension: '.nt'},
+        {name: 'N3', extension: '.n3'},
+        {name: 'N-QUADS', extension: '.nq'},
+        {name: 'JSON-LD', extension: '.jsonld'},
+        {name: 'Trix', extension: '.xml'},
+        {name: 'TriG', extension: '.trig'},
       ],
       subject: '',
       predicate: '',
@@ -182,7 +218,8 @@ export default defineComponent({
       deleteAllStatementsDialog: false,
       useBaseURIAsContext: false,
       fileToUpload: null as unknown as File,
-      fileType: '' as string
+      fileType: '' as string,
+      isShowHelp: false
     }
   },
   created() {
@@ -194,15 +231,22 @@ export default defineComponent({
       lineNumbers: true,
       mode: 'sparql',
     })
+
+    this.editor.on("change", (cm: any, change: any) => {
+      var before = cm.getRange({line: 0, ch: 0}, change.from);
+      var after = cm.getRange(change.to, {line: cm.lineCount() + 1, ch: 0});
+      this.content = before + after
+    })
   },
   methods: {
     executeQuery() {
-      this.editor.setValue(" skuska")
+
+      console.log(this.content.includes("INSERT"))
     },
     async removeAll() {
       await this.apiService.deleteAllStatements(this.$store.state.selectedRepository.id.value)
       this.deleteAllStatementsDialog = false
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'All Statements Deleted', life: 3000})
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'All Statements Deleted', life: 3000})
     },
     changeDeleteTab(event: number) {
       if (event === 1) {
@@ -210,7 +254,7 @@ export default defineComponent({
         if (this.subject === '') {
           this.notEmptyDeleteInput = ''
         }
-      } else if ( event === 2) {
+      } else if (event === 2) {
         this.notEmptyDeleteInput = "predicate"
         if (this.predicate === '') {
           this.notEmptyDeleteInput = ''
@@ -228,7 +272,7 @@ export default defineComponent({
         if (this.url === '') {
           this.selectedUploadType = ''
         }
-      } else if ( event === 3) {
+      } else if (event === 3) {
         this.selectedUploadType = 'Content'
         if (this.areaContent === '') {
           this.selectedUploadType = ''
@@ -249,7 +293,7 @@ export default defineComponent({
         this.apiService.deleteSpecifiedStatements(this.$store.state.selectedRepository.id.value, "obj", encodeURIComponent(this.object))
         this.object = ''
       }
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Statements Deleted', life: 3000})
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Statements Deleted', life: 3000})
 
     },
     prepareForm(event: any) {
@@ -262,7 +306,7 @@ export default defineComponent({
           if (this.useBaseURIAsContext) {
             this.contextAdd = '<' + this.baseUri + '>'
           }
-          this.selectedFormat = 'Turtle'
+          this.selectedFormat = 'TURTLE'
         }
 
       } else {
@@ -289,13 +333,19 @@ export default defineComponent({
     async upload() {
       // TODO: pridat checkbox ci pridat alebo nahradit data
       if (this.url !== '') {
+        // if (!this.url.match("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)")) {
+        //
+        // }
         const content = await fetch(this.url).then((response) => response.text())
         if (this.contextAdd === '') {
-          await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat('.ttl') , null, content,  'null')
+          await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat('.ttl'), null, content, 'null')
         } else {
-          await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat('.ttl') , null, content,  encodeURIComponent(this.contextAdd))
+          await this.apiService.updateRepositoryStatements(this.$store.state.selectedRepository.id.value, this.helperUtils.findDataFormat('.ttl'), null, content, encodeURIComponent(this.contextAdd))
         }
       }
+    },
+    showHelp() {
+      this.isShowHelp = true
     }
   }
 
@@ -303,79 +353,90 @@ export default defineComponent({
 </script>
 
 <style scoped>
-  .main {
-    display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    position: absolute;
-    top: 100px;
-    left: 200px;
-    width: 89%;
-    min-height: 89%;
-    background-color: #DCD6D6;
-  }
-  .ciara {
-    width: 200px;
-    border: 3px solid #DA5800;
-    transform: matrix(1,0,0,1,0,0);
-    margin-top: 5px;
-  }
-  .filter {
-    position: relative;
-    padding: 30px 30px 30px 30px;
-    width: 750px;
-    height: 320px;
-    background-color: white;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  :deep(.CodeMirror) {
-    height: 300px;
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 0;
-  }
-  .buttons-content {
-    display: flex;
-    align-items: center;
-    padding-left: 20px;
-    height: 80px;
-  }
-  .modifie-contents {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    gap: 70px;
-  }
-  h1 {
-    margin: 0;
-    font-size: 40px;
-  }
-  .modifie-content {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .input-container {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  .upload-button {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-  }
-  .remove-button {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-  }
-  .remove-all-button {
-    position: absolute;
-    bottom: 30px;
-    left: 30px;
-  }
+.main {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  position: absolute;
+  top: 100px;
+  left: 200px;
+  width: 89%;
+  min-height: 89%;
+  background-color: #DCD6D6;
+}
+
+.ciara {
+  width: 200px;
+  border: 3px solid #DA5800;
+  transform: matrix(1, 0, 0, 1, 0, 0);
+  margin-top: 5px;
+}
+
+.filter {
+  position: relative;
+  padding: 30px 30px 30px 30px;
+  width: 750px;
+  height: 320px;
+  background-color: white;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+:deep(.CodeMirror) {
+  height: 300px;
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.buttons-content {
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  height: 80px;
+}
+
+.modifie-contents {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  gap: 70px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 40px;
+}
+
+.modifie-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.upload-button {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+}
+
+.remove-button {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+}
+
+.remove-all-button {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+}
 </style>

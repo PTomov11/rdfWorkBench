@@ -107,13 +107,13 @@ export default class APIService {
     }
 
     async query(repositoryName: string, queryString: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?subj=' + queryString, {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?query=' + queryString, {
             method: 'GET',
             headers: {
                 'Accept': 'application/sparql-results+json',
             }
         }).then(response => response.json())
-            .then(data => console.log(data.results.bindings))
+            .then(data => data.results.bindings)
     }
 
     //Delete statements
