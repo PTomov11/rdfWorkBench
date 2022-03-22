@@ -1,5 +1,5 @@
 <template>
-  <div class="top-bar">
+  <div class="top-bar" :style="{ 'margin-left': this.$store.state.collapsed ? '50px' : '200px' }">
     <div class="container">
 
       <div class="item">
@@ -40,13 +40,15 @@ export default defineComponent({
 <style scoped>
   .top-bar {
     height: 100px; /* Full-height: remove this if you want "auto" height */
-    width: 90%; /* Set the width of the sidebar */
+    width: 100%;
+   /* Set the width of the sidebar */
     position: fixed; /* Fixed Sidebar (stay in place on scroll) */
     z-index: 1; /* Stay on top */
     top: 0; /* Stay at the top */
-    left: 200px;
+    left: 0;
     background-color: #0A2341; /* Black */
     /*overflow-x: hidden; !* Disable horizontal scroll *!*/
+
   }
   .container {
     height: 100px;

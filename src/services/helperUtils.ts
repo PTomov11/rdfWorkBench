@@ -37,7 +37,13 @@ export default class helperUtils {
                     }
                 }
                 if (!matched) {
+                    // if (array.type === "uri") {
+                    //     endObject[Object.keys(endObject)[index]] = ``array.value
+                    //     &lt;
+                    //
+                    // }
                     endObject[Object.keys(endObject)[index]] = array.value
+
                 }
                 index = index + 1
             }
@@ -58,7 +64,6 @@ export default class helperUtils {
                         subject: '',
                         predicate: '',
                         object: '',
-                        // TODO: nemusi but zadany context pri statemente
                         context: hasContext ? object.graphs[0] : ''
                     } as Statement
                     let subjectMatchedNamespace = false
@@ -80,16 +85,14 @@ export default class helperUtils {
                     }
                     if (!subjectMatchedNamespace) {
                         if (subject.includes("http")) {
-                            // endObject["subject"] = "<" + subject + ">"
-                            endObject["subject"] = subject
+                            endObject["subject"] = "<" + subject + ">"
                         } else {
                             endObject["subject"] = subject
                         }
                     }
                     if (!predicateMatchedNamespace) {
                         if (predicate.includes("http")) {
-                            // endObject["predicate"] = "<" + predicate + ">"
-                            endObject["predicate"] = predicate
+                            endObject["predicate"] = "<" + predicate + ">"
                         } else {
                             endObject["predicate"] = predicate
                         }
@@ -140,6 +143,12 @@ export default class helperUtils {
             }
             case '.trig': {
                 return DataFormat.TRIG
+            }
+            case '.n3': {
+                return DataFormat.N3
+            }
+            case '.xml': {
+                return DataFormat.TRIX
             }
             default: {
                 return ""

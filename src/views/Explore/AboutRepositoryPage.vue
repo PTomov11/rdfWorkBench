@@ -16,7 +16,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>{{this.$store.state.selectedRepository.id.value}}</span>
+                <span>{{ this.$store.state.selectedRepository.id.value }}</span>
               </div>
             </div>
           </div>
@@ -26,7 +26,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>{{this.$store.state.selectedRepository.title.value}}</span>
+                <span>{{ this.$store.state.selectedRepository.title.value }}</span>
               </div>
             </div>
           </div>
@@ -36,7 +36,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>{{this.$store.state.selectedRepository.uri.value}}</span>
+                <span>{{ this.$store.state.selectedRepository.uri.value }}</span>
               </div>
             </div>
           </div>
@@ -94,32 +94,51 @@
         </DataTable>
       </div>
       <div v-if="activeTab === 1">
-        <DataTable :rows="10" :value="contexts" stripedRows responsiveLayout="scroll" :scrollable="true" scrollHeight="380px">
+        <DataTable :rows="10" :value="contexts" stripedRows responsiveLayout="scroll" :scrollable="true"
+                   scrollHeight="380px">
           <Column field="contextID.value" header="Context" :sortable="true"></Column>
         </DataTable>
       </div>
       <div v-if="activeTab === 2" class="namespaces-tab">
 
-        <DataTable :value="namespaces" data-key="prefix.value" stripedRows responsiveLayout="scroll" :scrollable="true" scrollHeight="380px" style="flex-grow: 1;">
+        <DataTable :value="namespaces" data-key="prefix.value" stripedRows responsiveLayout="scroll" :scrollable="true"
+                   scrollHeight="380px" style="flex-grow: 1;">
           <Column field="prefix.value" header="Prefix" :sortable="true" style="max-width:200px"></Column>
           <Column field="namespace.value" header="Namespace"></Column>
         </DataTable>
 
-        <div class="filter">
-          <span style="font-size: 30px;font-weight: bolder">Prefix </span>
-          <InputText class="input" style="width: 200px" type="text" v-model="prefix"/>
-          <Dropdown v-model="selectedPrefix" style="width: 200px" :options="prefixes" optionLabel="name" placeholder="Select a prefix" @change="changePrefix" />
-          <span style="font-size: 30px;font-weight: bolder">Namespace </span>
-          <InputText class="input" type="text" v-model="namespace"/>
-          <div style="display:flex;justify-content: space-between">
-            <Button label="UPDATE" @click="updateNamespace"></Button>
-            <Button label="DELETE" @click="deleteNamespace"></Button>
-          </div>
+        <div>
+          <form @submit.prevent="updateNamespace(!v$.$invalid)" class="p-fluid filter">
+            <span style="font-size: 30px;font-weight: bolder">Prefix</span>
+            <InputText v-model="v$.prefix.$model"
+                       v-on:input="resetForm"
+                       :class="{'p-invalid':v$.prefix.$invalid && submitted || isPrefixMissing}"
+                       class="input"
+                       style="width: 200px"/>
+            <small v-if="(v$.prefix.$invalid && submitted) || v$.prefix.$pending.$response || isPrefixMissing"
+                   class="p-error">{{ v$.prefix.required.$message.replace('Value', 'Prefix') }}</small>
+
+            <Dropdown v-model="selectedPrefix" style="width: 200px" :options="prefixes" optionLabel="name"
+                      placeholder="Select a prefix" @change="changePrefix"/>
+            <span style="font-size: 30px;font-weight: bolder">Namespace </span>
+            <InputText v-model="v$.namespace.$model"
+                       v-on:input="resetForm"
+                       :class="{'p-invalid':v$.namespace.$invalid && submitted}"
+                       class="input"/>
+            <small v-if="(v$.namespace.$invalid && submitted) || v$.namespace.$pending.$response"
+                   class="p-error">{{ v$.namespace.required.$message.replace('Value', 'Namespace') }}</small>
+
+            <div style="display:flex;justify-content: space-between">
+              <Button label="UPDATE" type="submit" style="width: 100px"/>
+              <Button label="DELETE" @click="deleteNamespace(!v$.prefix.$invalid)" style="width: 100px"/>
+            </div>
+          </form>
+
         </div>
 
       </div>
     </div>
-    <router-view />
+    <router-view/>
 
 
   </div>
@@ -131,18 +150,21 @@ import {Context, Namespace, Type} from "@/views/Explore/types/ExploreTypes";
 import APIService from "@/services/APIService";
 import {SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
+import {useVuelidate} from "@vuelidate/core";
+import {required} from "@vuelidate/validators";
 
 export default defineComponent({
   name: "AboutRepositoryPage",
   props: ['name'],
   components: {MenuLayout},
+  setup: () => ({v$: useVuelidate()}),
   data() {
     return {
       activeTab: -1,
       items: [
-        {label: 'Types', to: {name: 'Types', params:{name:this.$store.state.selectedRepository.id.value}}},
-        {label: 'Context', to: {name: 'Context', params:{name:this.$store.state.selectedRepository.id.value}}},
-        {label: 'Namespaces', to: {name: 'Namespaces', params:{name:this.$store.state.selectedRepository.id.value}}}
+        {label: 'Types', to: {name: 'Types', params: {name: this.$store.state.selectedRepository.id.value}}},
+        {label: 'Context', to: {name: 'Context', params: {name: this.$store.state.selectedRepository.id.value}}},
+        {label: 'Namespaces', to: {name: 'Namespaces', params: {name: this.$store.state.selectedRepository.id.value}}}
       ],
       types: [] as Type[],
       contexts: [] as Context[],
@@ -152,7 +174,19 @@ export default defineComponent({
       namespace: '' as string,
       selectedNamespace: {} as Namespace,
       prefixes: [] as SelectedItem[],
-      apiService: null as unknown as APIService
+      apiService: null as unknown as APIService,
+      submitted: false,
+      isPrefixMissing: false
+    }
+  },
+  validations() {
+    return {
+      prefix: {
+        required
+      },
+      namespace: {
+        required
+      }
     }
   },
   created() {
@@ -187,7 +221,11 @@ export default defineComponent({
         this.namespace = namespace.namespace.value
       }
     },
-    async updateNamespace() {
+    async updateNamespace(isFormValid: any) {
+      this.submitted = true;
+      if (!isFormValid) {
+        return
+      }
       await this.apiService.updateNamespaceOfRepository(this.$store.state.selectedRepository.id.value, this.prefix, this.namespace)
       this.apiService.getNamespacesOfRepository(this.$store.state.selectedRepository.id.value).then((data: Namespace[]) => {
         this.namespaces = data
@@ -199,133 +237,166 @@ export default defineComponent({
           this.prefixes.push(prefix)
         }
       })
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Namespace Updated', life: 3000})
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Namespace Updated', life: 3000})
       this.prefix = ''
       this.namespace = ''
       this.selectedPrefix = {} as SelectedItem
+      this.submitted = false
     },
-    deleteNamespace() {
+    deleteNamespace(isPrefix: boolean) {
+      if (!isPrefix) {
+        this.isPrefixMissing = true
+        return
+      }
       this.apiService.deleteNamespaceOfRepository(this.$store.state.selectedRepository.id.value, this.prefix)
       this.namespaces = this.namespaces.filter(val => val.prefix.value !== this.selectedNamespace.prefix.value)
       this.prefixes = this.prefixes.filter(val => val.name !== this.selectedNamespace.prefix.value)
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Namespace Deleted', life: 3000})
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Namespace Deleted', life: 3000})
       this.prefix = ''
       this.namespace = ''
       this.selectedPrefix = {} as SelectedItem
+      this.isPrefixMissing = false
+    },
+    resetForm() {
+      if (this.prefix !== "") {
+        this.isPrefixMissing = false
+      } else {
+        this.submitted = false
+      }
+      if (this.namespace === "") {
+        this.submitted = false
+      }
     }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-  .summary-header {
-    font-size: 60px;
-    font-weight: bolder;
-    height: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .header {
-    font-size: 30px;
-    font-weight: bolder;
-  }
-  .summary {
-    padding-left: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    width: 700px;
-    height: 170px;
-    background-color: white;
-    border-radius: 10px;
-  }
-  .text-background {
-    display: inline-block;
-    background-color: #DCD6D6;
-    border-radius: 10px;
-    font-size: 18px;
-  }
-  .separator {
-    height: 30px;
-    background-color: #01112C;
-    margin-top: 30px;
-  }
-  .main {
-    display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    position: absolute;
-    top: 100px;
-    left: 200px;
-    width: 89%;
-    min-height: 89%;
-    background-color: #DCD6D6;
-  }
-  .summary-container {
-    display: flex;
-    justify-content: space-around;
-  }
-  .content-container {
-    display: flex;
-    flex-direction: column;
-    padding: 20px 20px 20px 20px;
-    row-gap: 10px;
-  }
-  .filter {
-    padding: 15px 15px 15px 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    gap: 10px;
+.summary-header {
+  font-size: 60px;
+  font-weight: bolder;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    width: 500px;
-    height: 380px;
-    background-color: white;
-    border-radius: 10px;
+.header {
+  font-size: 30px;
+  font-weight: bolder;
+}
 
-  }
-  .table {
-    min-width: 500px;
-  }
-  :deep(.p-tabmenu-nav) {
-    justify-content: space-between;
-    background: #DCD6D6;
-    border-bottom-width: 4px;
+.summary {
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 700px;
+  height: 170px;
+  background-color: white;
+  border-radius: 10px;
+}
 
-  }
-  ::v-deep .p-tabmenuitem {
-    font-size: 35px;
-  }
-  ::v-deep .p-tabmenu .p-tabmenu-nav .p-highlight .p-menuitem-link {
-    background: #DCD6D6;
-    border-width: 0 0 4px 0;
-    border-color: #DA5800;
-    color: #6c757d;
+.text-background {
+  display: inline-block;
+  background-color: #DCD6D6;
+  border-radius: 10px;
+  font-size: 18px;
+}
 
-  }
-  ::v-deep .p-tabmenu .p-tabmenu-nav .p-menuitem-link {
-    background-color: #DCD6D6;
-  }
+.separator {
+  height: 30px;
+  background-color: #01112C;
+  margin-top: 30px;
+}
 
-  ::v-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):focus {
-    box-shadow: none;
-  }
-  ::v-deep .p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):hover {
-    background-color: #DCD6D6;
-    //padding-bottom: 18px;
-    border-width: 0 0 4px 0;
-  }
-  .namespaces-tab {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-  }
-  .input-container {
-    display: flex;
-    font-size: 20px;
-    align-items: center;
-    gap: 20px;
-  }
+.main {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  position: absolute;
+  top: 100px;
+  left: 200px;
+  width: 89%;
+  min-height: 89%;
+  background-color: #DCD6D6;
+}
+
+.summary-container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 20px 20px;
+  row-gap: 10px;
+}
+
+.filter {
+  padding: 15px 15px 15px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 10px;
+
+  width: 500px;
+  height: 380px;
+  background-color: white;
+  border-radius: 10px;
+
+}
+
+.table {
+  min-width: 500px;
+}
+
+:deep(.p-tabmenu-nav) {
+  justify-content: space-between;
+  background: #DCD6D6;
+  border-bottom-width: 4px;
+
+}
+
+:deep(.p-tabmenuitem) {
+  font-size: 35px;
+}
+
+:deep(.p-tabmenu .p-tabmenu-nav .p-highlight .p-menuitem-link) {
+  background: #DCD6D6;
+  border-width: 0 0 4px 0;
+  border-color: #DA5800;
+  color: #6c757d;
+
+}
+
+:deep(.p-tabmenu .p-tabmenu-nav .p-menuitem-link) {
+  background-color: #DCD6D6;
+  margin: 0 0 -4px 0;
+  border-width: 0 0 4px 0;
+}
+
+:deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):focus) {
+  box-shadow: none;
+}
+
+:deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link:not(.p-disabled):hover) {
+  background-color: #DCD6D6;
+  border-width: 0 0 4px 0;
+}
+
+.namespaces-tab {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.input-container {
+  display: flex;
+  font-size: 20px;
+  align-items: center;
+  gap: 20px;
+}
 </style>

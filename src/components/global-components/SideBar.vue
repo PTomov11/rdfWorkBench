@@ -1,5 +1,12 @@
 <template>
   <div class="side-nav">
+<!--    <span-->
+<!--        class="collapse-icon"-->
+<!--        :class="{ 'rotate-180': collapsed }"-->
+<!--        @click="toggleSidebar"-->
+<!--    >-->
+<!--      <i class="pi pi-angle-double-left"/>-->
+<!--    </span>-->
     <div>
       <img  class="logo" :src="require('@/assets/rdf_logo2.png')">
     </div>
@@ -37,17 +44,16 @@
 
 <script>
 
-import {defineComponent, reactive, toRefs} from "vue";
+import {defineComponent} from "vue";
+import {SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED} from "@/store/store";
 
 export default defineComponent({
   name: "SideBar",
   props: ['activeSection'],
-  setup() {
-    const state = reactive({
-      activeTab : null
-    })
+  data() {
     return {
-      ...toRefs(state)
+      activeTab: null,
+      // collapsed: this.$store.state.collapsed
     }
   }
 })
@@ -55,18 +61,20 @@ export default defineComponent({
 
 <style scoped>
   .side-nav {
-    height: 100%; /* Full-height: remove this if you want "auto" height */
-    width: 200px; /* Set the width of the sidebar */
+   /* Full-height: remove this if you want "auto" height */
+    float: left;
     position: fixed; /* Fixed Sidebar (stay in place on scroll) */
     z-index: 1; /* Stay on top */
     top: 0; /* Stay at the top */
     left: 0;
+    bottom: 0;
     background-color: #01112C; /* Black */
     /*overflow-x: hidden; !* Disable horizontal scroll *!*/
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    /*align-items: flex-start;*/
 
+    transition: 0.3s ease;
   }
   .menu-item {
     display: flex;
@@ -108,5 +116,18 @@ export default defineComponent({
   }
   .active-sub-section {
     color: #DA5800;
+  }
+  .collapse-icon {
+    position: absolute;
+    bottom: 0;
+    padding: 0.75em;
+
+    color: white;
+
+    transition: 0.2s linear;
+  }
+  .rotate-180 {
+    transform: rotate(180deg);
+    transition: 0.2s linear;
   }
 </style>

@@ -8,13 +8,13 @@
         <Column field="id.value" header="Name" style="min-width:300px" :sortable="true"></Column>
         <Column field="title.value" header="Description" style="min-width:300px" :sortable="true"></Column>
         <Column field="uri.value" header="Location" style="min-width:700px" :sortable="true"></Column>
-<!--          <template #body="slotProps">-->
-<!--            <span v-if="slotProps.data.uri.value.length > 50" v-tooltip.right="{ value: slotProps.data.uri.value, class: 'tooltip' }">{{truncate(slotProps.data.uri.value, 50, '...')}}</span>-->
-<!--          </template>-->
         <Column>
           <template #body="slotProps">
-            <Button icon="pi pi-check" class="p-button-rounded" :disabled="selectedRepository === slotProps.data.id.value" @click="selectRepository(slotProps.data)" />
-            <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px" @click="confirmDeleteRepository(slotProps.data)" />
+            <Button icon="pi pi-check" class="p-button-rounded"
+                    :disabled="selectedRepository === slotProps.data.id.value"
+                    @click="selectRepository(slotProps.data)"/>
+            <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px"
+                    @click="confirmDeleteRepository(slotProps.data)"/>
           </template>
         </Column>
       </DataTable>
@@ -22,71 +22,87 @@
         <Button class="create-button" label="CREATE NEW REPOSITORY" @click="openModal"></Button>
       </div>
     </div>
-
-    <Dialog v-model:visible="deleteRepositoryDialog" :style="{width: '450px'}" header="Confirm" :modal="true">
-      <div class="confirmation-content">
-        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
-        <span v-if="repositoryToDelete">Are you sure you want to delete <b>{{repositoryToDelete.id.value}}</b>?</span>
-      </div>
-      <template #footer>
-        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteRepositoryDialog = false"/>
-        <Button label="Yes" icon="pi pi-check" class="p-button-text" @click="deleteRepository" />
-      </template>
-    </Dialog>
-
-    <Dialog header="Create Repository" v-model:visible="displayModal" :style="{width: '700px'}" :modal="true">
-      <div class="filter">
-        <div class="input-container">
-          <div style="width: 120px">
-            <span>Type: </span>
-          </div>
-          <div>
-            <Dropdown v-model="selectedStore" :options="stores" optionLabel="name" placeholder="Select a Store" />
-          </div>
-        </div>
-        <div class="input-container">
-          <div style="width: 120px">
-            <span>ID: </span>
-          </div>
-          <div>
-            <InputText class="input" type="text" v-model="id" />
-          </div>
-        </div>
-        <div class="input-container">
-          <div style="width: 120px">
-            <span>Title: </span>
-          </div>
-          <div>
-            <InputText class="input" type="text" v-model="title" />
-          </div>
-        </div>
-        <div class="input-container">
-          <div style="width: 120px">
-            <span>Persist: </span>
-          </div>
-          <div>
-            <ToggleButton v-model="persist" onIcon="pi pi-check" offIcon="pi pi-times" />
-          </div>
-        </div>
-        <div class="input-container">
-          <div style="width: 120px">
-            <span>Sync Delay: </span>
-          </div>
-          <div>
-            <InputText class="input" type="text" v-model.number="delay" />
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Save" icon="pi pi-check" @click="createRepository" autofocus />
-      </template>
-    </Dialog>
-    <router-view/>
   </div>
+
+  <Dialog v-model:visible="deleteRepositoryDialog" header="Confirm" :modal="true">
+    <div style="display: flex;align-items: center;padding-top: 25px">
+      <i class="pi pi-exclamation-triangle mr-3" style="font-size: 5rem;color: red"/>
+      <span v-if="repositoryToDelete" style="font-size: 20px;font-weight: lighter">Are you sure you want to delete <b>{{ repositoryToDelete.id.value }}</b>?</span>
+    </div>
+    <template #footer>
+      <Button label="No" icon="pi pi-times" @click="deleteRepositoryDialog = false"/>
+      <Button label="Yes" icon="pi pi-check" @click="deleteRepository" />
+    </template>
+  </Dialog>
+
+  <Dialog v-model:visible="displayModal" :style="{width: '700px'}" :modal="true">
+    <template #header>
+      <h3>Create Repository</h3>
+    </template>
+    <form @submit.prevent="handleSubmit(!v$.$invalid)" class="p-fluid filter">
+      <div class="field input-container">
+        <div style="width: 120px">
+          <span>Type: </span>
+        </div>
+        <div class="p-float-label">
+          <Dropdown v-model="v$.selectedStore.$model"
+                    :class="{'p-invalid':v$.selectedStore.$invalid && submitted}" :options="stores" optionLabel="name"
+                    placeholder="Select a Store"/>
+        </div>
+        <small v-if="(v$.selectedStore.$invalid && submitted) || v$.selectedStore.$pending.$response" class="p-error">
+          {{ v$.selectedStore.required.$message.replace('Value', 'Type') }}</small>
+      </div>
+      <div class="field input-container">
+        <div style="width: 120px">
+          <span>Name: </span>
+        </div>
+        <div class="p-float-label">
+          <InputText id="repositoryName" v-model="v$.repositoryName.$model"
+                     :class="{'p-invalid':v$.repositoryName.$invalid && submitted}" class="input"/>
+        </div>
+        <small v-if="(v$.repositoryName.$invalid && submitted) || v$.repositoryName.$pending.$response"
+               class="p-error">{{ v$.repositoryName.required.$message.replace('Value', 'Name') }}</small>
+      </div>
+      <div class="field input-container">
+        <div style="width: 120px">
+          <span>Title: </span>
+        </div>
+        <div class="p-float-label">
+          <InputText id="title" v-model="v$.title.$model" :class="{'p-invalid':v$.title.$invalid && submitted}"
+                     class="input"/>
+        </div>
+        <small v-if="(v$.title.$invalid && submitted) || v$.title.$pending.$response"
+               class="p-error">{{ v$.title.required.$message.replace('Value', 'Title') }}</small>
+      </div>
+      <div class="field input-container">
+        <div style="width: 120px">
+          <span>Persist: </span>
+        </div>
+        <div class="p-float-label">
+          <ToggleButton v-model="persist" onIcon="pi pi-check" offIcon="pi pi-times"/>
+        </div>
+      </div>
+      <div class="field input-container">
+        <div style="width: 120px">
+          <span>Sync delay: </span>
+        </div>
+        <div class="p-float-label">
+          <InputText id="delay" v-model.number="v$.delay.$model" :class="{'p-invalid':v$.delay.$invalid && submitted}"
+                     class="input"/>
+        </div>
+        <small v-if="(v$.delay.$invalid && submitted) || v$.delay.$pending.$response"
+               class="p-error">{{ v$.delay.required.$message.replace('Value', 'Delay') }}</small>
+      </div>
+      <Button class="save-button" type="submit" label="Save" icon="pi pi-check"/>
+    </form>
+  </Dialog>
+  <router-view/>
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue";
+import {required} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 import APIService from "@/services/APIService.ts";
 import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
@@ -94,10 +110,11 @@ import MenuLayout from "@/components/global-components/MenuLayout.vue";
 export default defineComponent({
   name: "RepositoriesPage",
   components: {MenuLayout},
+  setup: () => ({v$: useVuelidate()}),
   data() {
     return {
       selectedStore: {} as SelectedItem,
-      id: '',
+      repositoryName: '',
       title: '',
       persist: false,
       delay: 0,
@@ -110,7 +127,27 @@ export default defineComponent({
       deleteRepositoryDialog: false,
       apiService: null as unknown as APIService,
       displayModal: false,
-      loading: false
+      loading: false,
+      submitted: false
+    }
+  },
+  validations() {
+    return {
+      repositoryName: {
+        required
+      },
+      selectedStore: {
+        required
+      },
+      title: {
+        required
+      },
+      persist: {
+        required
+      },
+      delay: {
+        required
+      }
     }
   },
   created() {
@@ -138,25 +175,41 @@ export default defineComponent({
       this.apiService.deleteRepository(this.repositoryToDelete.id.value)
       this.repositories = this.repositories.filter(val => val.id.value !== this.repositoryToDelete.id.value)
       this.repositoryToDelete = {} as Repository
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Repository Deleted', life: 3000})
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Repository Deleted', life: 3000})
       this.deleteRepositoryDialog = false
     },
     selectRepository(repository: Repository) {
       this.$store.dispatch('changeSelectedRepository', repository)
-      this.$toast.add({severity: 'info', summary: 'Repository Selected', detail: 'Name: ' + repository.id.value, life: 3000})
-      this.$router.push({name: 'AboutRepositoryPage', params:{name:this.$store.state.selectedRepository.id.value}})
+      this.$toast.add({
+        severity: 'info',
+        summary: 'Repository Selected',
+        detail: 'Name: ' + repository.id.value,
+        life: 3000
+      })
+      this.$router.push({name: 'AboutRepositoryPage', params: {name: this.$store.state.selectedRepository.id.value}})
     },
     openModal() {
       this.displayModal = true
     },
-    async createRepository() {
+    async handleSubmit(isFormValid: any) {
+      this.submitted = true;
+      if (!isFormValid) {
+        return;
+      }
       this.displayModal = false
-      await this.apiService.createRepository(this.id, this.title, this.persist, this.delay, this.selectedStore.name.replace(/\s+/g, ''))
+      await this.apiService.createRepository(this.repositoryName, this.title, this.persist, this.delay, this.selectedStore.name.replace(/\s+/g, ''))
       this.apiService.getListOfRepositories().then((data: Repository[]) => {
         this.repositories = data
         this.loading = false
       })
-      this.$toast.add({severity:'success', summary: 'Successful', detail: 'Repository Created', life: 3000})
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Repository Created', life: 3000})
+      this.resetForm()
+    },
+    resetForm() {
+      this.selectedStore = {name: ''}
+      this.repositoryName = ''
+      this.title = ''
+      this.delay = 0
     }
   }
 
@@ -164,43 +217,63 @@ export default defineComponent({
 </script>
 
 <style scoped>
-  .main {
-    display: flex;
-    position: absolute;
-    justify-content: center;
-    align-items: center;
-    top: 100px;
-    left: 200px;
-    width: 89%;
-    height: 89%;
-    background-color: #DCD6D6;
-  }
-  .create-button {
-    height: 50px;
-    width: 1450px;
-    background: #6583A7;
-  }
+.main {
+  display: flex;
+  position: absolute;
+  justify-content: center;
+  align-items: center;
+  top: 100px;
+  left: 200px;
+  width: 89%;
+  height: 89%;
+  background-color: #DCD6D6;
 
-  .create-button:hover {
-    background-color: #01112C;
-  }
+}
 
-  .button-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80px;
-    background-color: #C4C4C4;
-  }
-  .filter {
-    padding: 30px 30px 30px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .input-container {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
+.create-button {
+  height: 50px;
+  width: 1350px;
+  background: #6583A7;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  border-radius: 10px;
+  background-color: #C4C4C4;
+}
+
+.filter {
+  padding: 30px 30px 30px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+:deep(.p-togglebutton.p-button.p-highlight) {
+  background: #0A2341;
+}
+
+.save-button {
+  bottom: 20px;
+  right: 20px;
+  width: 100px;
+  position: absolute;
+}
+
+span {
+  font-weight: bolder;
+  font-size: 16px;
+}
+:deep(.p-button-text) {
+  background-color: #0A2341;
+}
 </style>
