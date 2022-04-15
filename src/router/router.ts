@@ -6,6 +6,8 @@ import SystemPage from "@/views/System/SystemPage.vue";
 import HomePage from "@/views/HomePage.vue";
 import AboutRepositoryPage from "@/views/Explore/AboutRepositoryPage.vue";
 import QueryPage from "@/views/Explore/QueryPage.vue";
+import QueryResultPage from "@/views/Explore/QueryResultPage.vue";
+import PageNotFound from "@/views/PageNotFound.vue";
 
 const routes = [
     {
@@ -57,6 +59,11 @@ const routes = [
         component: QueryPage,
     },
     {
+        path: '/repositories/:name/queryResult',
+        name: 'QueryResultPage',
+        component: QueryResultPage,
+    },
+    {
         path: '/update',
         name: 'UpdateRepositoryPage',
         component: UpdateRepositoryPage
@@ -65,6 +72,11 @@ const routes = [
         path: '/system',
         name: 'SystemPage',
         component: SystemPage
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        component: PageNotFound,
     },
 ]
 

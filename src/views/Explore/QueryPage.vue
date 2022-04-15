@@ -4,7 +4,7 @@
 
   <div class="main">
 
-    <div v-if="!executed" class="filter">
+    <div class="filter">
       <div class="sub-filter1">
         <Button label="SAVED QUERIES" @click="openSavedQueries"></Button>
       </div>
@@ -16,19 +16,19 @@
       </div>
     </div>
 
-    <div v-if="!executed">
+    <div>
       <Textarea class="editor" id="editor"></Textarea>
     </div>
 
-
-    <div v-if="executed" style="display:flex;justify-content: space-between">
-      <div class="query-header"><span>Query Result</span></div>
-
-      <Button label="BACK TO QUERY" @click="rerender"></Button>
-
+    <div style="display:flex;justify-content: space-between">
+      <Button label="BACK TO QUERY" @click="rerenderPage"></Button>
     </div>
 
-    <DataTable v-if="executed" :value="queryResults" :paginator="true" :alwaysShowPaginator="false" :rows="9"
+    <div v-if="isExecuted && isAskQueryExecuted">
+      <span>{{ askQueryResult }}</span>
+    </div>
+
+    <DataTable v-if="isExecuted && !isAskQueryExecuted" :value="queryResults" :paginator="true" :alwaysShowPaginator="false" :rows="9"
                :loading="loading"
                paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
@@ -48,6 +48,7 @@
       </template>
     </DataTable>
 
+
   </div>
 
   <Dialog header="Saved Queries" v-model:visible="displayModal" :modal="true">
@@ -58,13 +59,36 @@
           <template #body="slotProps">
             <Button icon="pi pi-check" class="p-button-rounded" @click="selectQuery(slotProps.data)"/>
             <Button icon="pi pi-user-edit" class="p-button-rounded" style="margin-left: 20px;"
-                    @click="editQuery(slotProps.data)"/>
+                    @click="openEditQueryModal(slotProps.data)"/>
             <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px;"
                     @click="confirmDeleteQuery(slotProps.data)"/>
           </template>
         </Column>
       </DataTable>
     </div>
+  </Dialog>
+
+  <Dialog header="Edit Query" v-model:visible="editModal" :position="editQueryPosition">
+    <div class="input-container" style="margin-top: 10px">
+      <div style="font-weight: bolder">
+        <span>Name: </span>
+      </div>
+      <div>
+        <input-text class="input" v-model="editQueryName" style="width: 300px"/>
+      </div>
+    </div>
+    <div class="input-container" style="margin-top: 10px">
+      <div style="font-weight: bolder">
+        <span>Value: </span>
+      </div>
+      <div>
+        <Textarea v-model="editQueryValue" rows="5" cols="40"/>
+      </div>
+    </div>
+    <template #footer>
+      <Button label="Cancel" icon="pi pi-times" @click="editModal = false"/>
+      <Button label="Save" icon="pi pi-check" @click="saveEditedQuery" />
+    </template>
   </Dialog>
 
 
@@ -94,6 +118,8 @@ import {defineComponent} from "vue";
 import APIService from "@/services/APIService";
 import helperUtils from "@/services/helperUtils";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
+import {mapState} from "pinia";
+import {useStore} from "@/store/store";
 
 export default defineComponent({
   name: "Query",
@@ -106,14 +132,25 @@ export default defineComponent({
       queryName: '' as string,
       editor: null as any,
       displayModal: false,
+      editModal: false,
       savedQueries: [] as SavedQuery[],
       deleteSavedQueryDialog: false,
       query: {} as SavedQuery,
       apiService: null as unknown as APIService,
       helperUtils: null as unknown as helperUtils,
       loading: false,
-      executed: false
+      editQueryPosition: 'right',
+      editQueryName: '',
+      editQueryValue: '',
+      oldQueryName: '',
+      isExecuted: false,
+      isAskQueryExecuted: false,
+      askQueryResult: false,
     }
+  },
+  computed: {
+    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getNamespaces'])
   },
   created() {
     this.apiService = new APIService()
@@ -177,22 +214,30 @@ export default defineComponent({
       this.displayModal = false;
       toRaw(this.editor).setValue(query.value)
     },
-    execute() {
+    async execute() {
+      this.isExecuted = true
+      var isAskQuery = false
       this.loading = true
-      this.executed = true
-      this.editor = null
-      this.apiService.query(this.$store.state.selectedRepository.id.value, encodeURIComponent(this.content)).then(data => {
-        console.log(data)
-        const namespaces = this.$store.state.namespaces
-        //Prepare colums
-        this.columns = this.helperUtils.prepareColumnsOfQuery(data)
-        //Prepare data
-        this.queryResults = this.helperUtils.prepareResultsOfQuery(data, this.columns, namespaces)
+      if (this.content.toLowerCase().includes("ask")) {
+        isAskQuery = true
+      }
+      await this.apiService.query(this.selectedRepository.id.value, encodeURIComponent(this.content), isAskQuery).then(data => {
+        if (isAskQuery) {
+          this.isAskQueryExecuted = true
+          this.askQueryResult = data
+        } else {
+          this.isAskQueryExecuted = false
+          const namespaces = this.getNamespaces
+          //Prepare colums
+          this.columns = this.helperUtils.prepareColumnsOfQuery(data)
+          //Prepare data
+          this.queryResults = this.helperUtils.prepareResultsOfQuery(data, this.columns, namespaces)
+        }
         this.loading = false
       })
     },
-    rerender() {
-      this.$forceUpdate()
+    rerenderPage() {
+      this.$router.push({name: 'QueryPage', params: {name: this.selectedRepository.id.value}})
     },
     truncate(text: string, length: number, suffix: any) {
       if (text.length > length) {
@@ -204,6 +249,24 @@ export default defineComponent({
     saveQueriesToBrowser() {
       const parsed = JSON.stringify(this.savedQueries)
       localStorage.setItem('savedQueries', parsed)
+    },
+    openEditQueryModal(query: SavedQuery) {
+      this.editModal = true
+      this.oldQueryName = query.name
+      this.editQueryName = query.name
+      this.editQueryValue = query.value
+    },
+    saveEditedQuery() {
+      var query = {
+        name: this.editQueryName,
+        value: this.editQueryValue
+      } as SavedQuery
+      this.savedQueries = this.savedQueries.filter(val => val.name !== this.oldQueryName)
+      this.savedQueries.push(query)
+      this.oldQueryName = query.name
+      this.saveQueriesToBrowser()
+      this.editModal = false
+      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Query Saved', life: 3000})
     }
   }
 })
@@ -268,5 +331,10 @@ export default defineComponent({
 
 :deep([role=cell]) {
   width: 250px;
+}
+.input-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 </style>

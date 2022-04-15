@@ -16,45 +16,63 @@
     <div class="menu-item">
       <div v-if="activeSection === 'Repositories'" class="active"></div>
       <i class="pi pi-book icon"></i>
-      <router-link v-if="this.$store.state.selectedRepository.id.value" class="section" :to="{ name: 'RepositoriesPageSelected',params: {name:this.$store.state.selectedRepository.id.value }}">Repositories</router-link>
+      <router-link v-if="this.repository.id.value" class="section" :to="{ name: 'RepositoriesPageSelected',params: {name:this.repository.id.value }}">Repositories</router-link>
       <router-link class="section" :to="{ name: 'RepositoriesPage'}" v-else>Repositories</router-link>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'Explore' || activeSection === 'About' || activeSection === 'Query'" class="active"></div>
-      <i class="pi pi-compass icon"></i>
-      <router-link class="section" :to="{ name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value || ' '} }">Explore</router-link>
+      <div :class="{ disabled: isRepository }">
+        <i class="pi pi-compass icon"></i>
+        <router-link class="section" :to="{ name: 'ExplorePage', params: {name:this.repository.id.value || ' '} }">Explore</router-link>
+      </div>
+
     </div>
     <div class="menu-item">
-      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'About'}" :to="{ name: 'AboutRepositoryPage', params: {name:this.$store.state.selectedRepository.id.value || ' '} }">About Repository</router-link>
-      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'Query'}" :to="{ name: 'QueryPage',params: {name:this.$store.state.selectedRepository.id.value || ' ' } }">Query</router-link>
+      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'About',  disabled: isRepository}" :to="{ name: 'AboutRepositoryPage', params: {name:this.repository.id.value || ' '} }">About Repository</router-link>
+      <router-link class="sub-section" :class="{'active-sub-section': activeSection === 'Query',  disabled: isRepository}" :to="{ name: 'QueryPage',params: {name:this.repository.id.value || ' ' } }">Query</router-link>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'Update'" class="active"></div>
-      <i class="pi pi-cloud-upload icon"></i>
-      <router-link class="section" :to="{ name: 'UpdateRepositoryPage' }">Update</router-link>
+      <div :class="{ disabled: isRepository }">
+        <i class="pi pi-cloud-upload icon"></i>
+        <router-link class="section" :to="{ name: 'UpdateRepositoryPage' }">Update</router-link>
+      </div>
     </div>
     <div class="menu-item">
       <div v-if="activeSection === 'System'" class="active"></div>
-      <i class="pi pi-cog icon"></i>
-      <router-link class="section" :to="{ name: 'SystemPage' }">System</router-link>
+      <div :class="{ disabled: isRepository }">
+        <i class="pi pi-cog icon"></i>
+        <router-link class="section" :to="{ name: 'SystemPage' }">System</router-link>
+      </div>
     </div>
   </div>
   <router-view />
 </template>
 
-<script>
+<script lang="ts">
 
 import {defineComponent} from "vue";
-import {SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED} from "@/store/store";
+import {mapState} from "pinia";
+import {useStore} from "@/store/store";
+import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
+
 
 export default defineComponent({
   name: "SideBar",
   props: ['activeSection'],
   data() {
     return {
-      activeTab: null,
-      // collapsed: this.$store.state.collapsed
+      repository: {id: {type: "", value: ""}} as Repository,
     }
+  },
+  computed: {
+    ...mapState(useStore, ['selectedRepository']),
+    isRepository() {
+      return this.repository.id.value === ""
+    },
+  },
+  mounted() {
+    this.repository = this.selectedRepository
   }
 })
 </script>
@@ -129,5 +147,9 @@ export default defineComponent({
   .rotate-180 {
     transform: rotate(180deg);
     transition: 0.2s linear;
+  }
+  .disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 </style>

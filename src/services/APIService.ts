@@ -1,3 +1,6 @@
+import router from "@/router/router";
+
+
 export default class APIService {
 
     async getStatements(repositoryName: string) {
@@ -18,6 +21,17 @@ export default class APIService {
         }).then(response => response.text())
     }
 
+    async getRepositorySize(repositoryName: string) {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/size', {
+            method: 'GET'
+        }).then(response => response.text())
+    }
+
+    async getRepositoryContexts(repositoryName: string) {
+        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/contexts', {
+            method: 'GET'
+        }).then(response => response.text())
+    }
 
     async createRepository(id: string, title: string, persist: boolean, delay: number, store: string) {
         await fetch('http://localhost:8081/rdf4j-server/repositories/' + id, {
@@ -106,14 +120,20 @@ export default class APIService {
             .then(data => data.results.bindings)
     }
 
-    async query(repositoryName: string, queryString: string) {
+    async query(repositoryName: string, queryString: string, isAsk: boolean) {
         return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?query=' + queryString, {
             method: 'GET',
             headers: {
-                'Accept': 'application/sparql-results+json',
+                'Accept': isAsk ? 'text/boolean' : 'application/sparql-results+json',
             }
         }).then(response => response.json())
-            .then(data => data.results.bindings)
+            .then(data => {
+                if (isAsk) {
+                    return data
+                } else {
+                    return data.results.bindings
+                }
+            })
     }
 
     //Delete statements
@@ -130,13 +150,33 @@ export default class APIService {
     }
 
     //Update statements
-    async updateRepositoryStatements(repositoryName: string, type: string, file: any, content: string, context: string) {
+    async updateRepositoryStatementsWithFileOrContent(repositoryName: string, replaceData: boolean, type: string, file: any, content: string, context: string) {
+        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?context=${context}`, {
+            method: replaceData ? 'PUT' : 'POST',
+            headers: {
+                'Content-Type': type,
+            },
+            body: file === null ? content : file
+        }).then(response => {
+            if (!response.ok) {
+                router.push({name: 'ErrorPage'})
+            }
+        })
+
+    }
+
+
+    async updateRepositoryStatementsWithQuery(repositoryName: string, type: string, content: string, context: string) {
         await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?context=${context}`, {
             method: 'POST',
             headers: {
                 'Content-Type': type,
             },
-            body: file === null ? content : file
+            body: "update=" + content
+        }).then(response => {
+            if (!response.ok) {
+                console.log("network response not ok", response)
+            }
         })
     }
 }

@@ -37,13 +37,13 @@ export default class helperUtils {
                     }
                 }
                 if (!matched) {
-                    // if (array.type === "uri") {
-                    //     endObject[Object.keys(endObject)[index]] = ``array.value
-                    //     &lt;
-                    //
-                    // }
-                    endObject[Object.keys(endObject)[index]] = array.value
-
+                    if (array.type === "uri") {
+                        endObject[Object.keys(endObject)[index]] = `<${array.value}>`
+                    } else if (array.type === "literal") {
+                        endObject[Object.keys(endObject)[index]] = `"${array.value}"`
+                    } else {
+                        endObject[Object.keys(endObject)[index]] = array.value
+                    }
                 }
                 index = index + 1
             }
@@ -53,7 +53,6 @@ export default class helperUtils {
     }
 
     prepareStatements(data: any, namespaces: Namespace[]): Statement[] {
-        console.log(data)
         const resultTriples = [] as Statement[]
         for (const subject in data) {
             for(const predicate in data[subject]) {
@@ -100,7 +99,6 @@ export default class helperUtils {
                     if (!objectMatchedNamespace) {
                         if (object.type === "uri") {
                             endObject["object"] = `<${object.value}>`
-                            // endObject["object"] = object.value
                         } else if (object.type === "literal"){
                             endObject["object"] = `"${object.value}"`
                         }
@@ -121,7 +119,7 @@ export default class helperUtils {
         }
     }
 
-    findDataFormat(type: string): string {
+    findDataFormatFromExtension(type: string): string {
         switch (type) {
             case '.ttl': {
                 return DataFormat.TURTLE
@@ -148,6 +146,41 @@ export default class helperUtils {
                 return DataFormat.N3
             }
             case '.xml': {
+                return DataFormat.TRIX
+            }
+            default: {
+                return ""
+            }
+        }
+    }
+
+    findDataFormatFromString(format: string): string {
+        switch (format) {
+            case 'TURTLE': {
+                return DataFormat.TURTLE
+            }
+            case 'RDFXML': {
+                return DataFormat.RDFXML
+            }
+            case 'NTRIPLES': {
+                return DataFormat.NTRIPLES
+            }
+            case 'NQUADS': {
+                return DataFormat.NQUADS
+            }
+            case 'JSON-LD': {
+                return DataFormat.JSONLD
+            }
+            case 'RDFJSON': {
+                return DataFormat.RDFJSON
+            }
+            case 'TRIG': {
+                return DataFormat.TRIG
+            }
+            case 'N3': {
+                return DataFormat.N3
+            }
+            case 'TRIX': {
                 return DataFormat.TRIX
             }
             default: {
