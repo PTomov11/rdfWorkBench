@@ -1,43 +1,47 @@
-import { createStore } from 'vuex'
+import {defineStore} from "pinia";
 import {Namespace} from "@/views/Explore/types/ExploreTypes";
 import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
 
-// export const SIDEBAR_WIDTH = 200
-// export const SIDEBAR_WIDTH_COLLAPSED = 50
-
-// Create a new store instance.
-const store = createStore({
-    state: {
-        selectedRepository: {
-            id: { type: "aa", value: "skuska2"},
-            title: { type: "aa", value: "aaa"},
-            uri: { type: "aa", value: "http://localhost:8080/rdf4j-server/repositories/skuska2"},
-        } as Repository,
+export const useStore = defineStore({
+    id: 'main',
+    state: () => ({
+        selectedRepository: {id: { type:"", value: ""}} as Repository,
         namespaces: [] as Namespace[],
-        // collapsed: false
-    },
-    mutations: {
-        SET_SELECTED_REPOSITORY(state, repository: Repository) {
-            state.selectedRepository = repository
+        rdfServerUrl: 'http://localhost:8080/rdf4j-server' as string,
+        numberOfStatements: 0 as number,
+        numberOfContexts: 0 as number,
+    }),
+    getters: {
+        getNamespaces(): Namespace[] {
+            return this.namespaces
         },
-        SET_NAMESPACES(state, namespaces: Namespace[]) {
-            state.namespaces = namespaces
+        getRdfServerUrl(): string {
+          return this.rdfServerUrl
         },
-        // SET_COLLAPSED(state, collapsed: boolean) {
-        //     state.collapsed = collapsed
-        // }
+        getNumberOfStatements(): number {
+            return this.numberOfStatements
+        },
+        getNumberOfContexts(): number {
+            return this.numberOfContexts
+        }
     },
     actions: {
-        changeSelectedRepository({commit}, repository: Repository) {
-            commit('SET_SELECTED_REPOSITORY', repository)
+        setRepository(repository: Repository) {
+            this.selectedRepository = repository
         },
-        setNamespaces({commit}, namespaces: Namespace[]) {
-            commit('SET_NAMESPACES', namespaces)
+        setNamespaces(namespaces: Namespace[]) {
+          this.namespaces = namespaces
         },
-        // setCollapsed({commit}, collapsed: boolean) {
-        //     commit('SET_COLLAPSED', collapsed)
-        // }
+        setRdfServerUrl(url: string) {
+            this.rdfServerUrl = url
+        },
+        setNumberOfStatements(count: number) {
+            this.numberOfStatements = count
+        },
+        setNumberOfContexts(count: number) {
+            this.numberOfContexts = count
+        }
     }
 })
 
-export default store
+export default useStore

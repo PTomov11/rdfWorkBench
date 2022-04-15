@@ -17,19 +17,21 @@ import Tooltip from 'primevue/tooltip';
 import ToggleButton from 'primevue/togglebutton';
 import ToastService from 'primevue/toastservice';
 import Dialog from "primevue/dialog";
-import store from '../src/store/store';
 import Textarea from "primevue/textarea";
 import FileUpload from 'primevue/fileupload';
 import Checkbox from 'primevue/checkbox';
+import SelectButton from 'primevue/selectbutton';
+import { createPinia } from 'pinia'
 
 
 const app = createApp(App)
+app.use(createPinia())
 app.use(PrimeVue)
 app.use(router)
-app.use(store)
 app.use(ToastService)
 app.directive('tooltip', Tooltip)
 app.component('TabMenu', TabMenu)
+app.component('SelectButton', SelectButton)
 app.component('Checkbox', Checkbox)
 app.component('FileUpload', FileUpload)
 app.component('Textarea', Textarea)

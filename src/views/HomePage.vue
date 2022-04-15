@@ -1,54 +1,30 @@
 <template>
   <img class="background" :src="image" alt="background"/>
-  <MegaMenu class="menu" :model="items">
-    <router-link :to="item.to"/>
-  </MegaMenu>
+
+  <div class="introduction">
+    <h1>RDF</h1>
+    <span> This OPEN-SOURCE application is developed for RDF storage traversal and working with RDF data.</span>
+    <Button class="p-button-lg" style="margin-top: 10px" label="Get Started" icon="pi pi-arrow-right" iconPos="right" @click="start" />
+  </div>
+
+
   <router-view/>
 </template>
 
 <script lang="ts">
-import {defineComponent, reactive , toRefs} from "vue"
+import {defineComponent} from "vue"
 
 export default defineComponent({
   name: "HomePage",
-  setup() {
-    const state = reactive({
-      image: require('../assets/background.png'),
-      items: [
-        {
-          label: 'Repositories',
-          to: '/repositories'
-        },
-        {
-          label: 'Explore',
-          to: '/explore',
-          items: [
-            [
-              {
-                label: 'About Repository'
-              },
-              {
-                label: 'Query'
-              }
-            ]
-          ]
-        },
-        {
-          label: 'Update',
-          to: '/update'
-        },
-        {
-          label: 'System',
-          to: '/system'
-        }
-      ]
-    })
-
+  data() {
     return {
-
-      ...toRefs(state)
+      image: require('../assets/background.png')
     }
-
+  },
+  methods: {
+    start() {
+      this.$router.push({name: 'RepositoriesPage', params: {name: ""}})
+    }
   }
 })
 </script>
@@ -69,13 +45,13 @@ export default defineComponent({
     left: 0;
     z-index: -1;
   }
-  .menu {
-    width: 500px;
-    position: fixed;
-    top: 10px;
-    right: 200px;
-  }
-  .skuska {
-    color:white;
+  .introduction {
+    position: absolute;
+    font-weight: bolder;
+    font-size: 30px;
+    top: 200px;
+    right: 250px;
+    color: white;
+    width: 450px;
   }
 </style>

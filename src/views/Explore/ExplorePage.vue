@@ -35,19 +35,23 @@
     </div>
 
 
-    <DataTable :value="tableData" :paginator="true" :alwaysShowPaginator="false" :rows="9" :loading="loading"
+    <DataTable :value="tableData" :paginator="true" :alwaysShowPaginator="false" :rows="10" :loading="loading"
                paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
       <Column header="Subject">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.subject.length > 45" @click="query(slotProps.data.subject)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.subject}}"
+                       :to="{name: 'ExplorePage',
+                       params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.subject)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.subject) }">
             {{ truncate(slotProps.data.subject, 45, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.subject)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.subject}}">
+                       :to="{name: 'ExplorePage',
+                        params: {name:this.repository.id.value},
+                        query:{resource: encodeURIComponent(slotProps.data.subject)}}">
             {{ slotProps.data.subject }}
           </router-link>
           <Button icon="pi pi-copy" @click="copyToClipboard(slotProps.data.subject)"
@@ -57,12 +61,16 @@
       <Column header="Predicate">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.predicate.length > 40" @click="query(slotProps.data.predicate)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.predicate}}"
+                       :to="{name: 'ExplorePage',
+                        params: {name:this.repository.id.value},
+                         query:{resource: encodeURIComponent(slotProps.data.predicate)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.predicate) }">
             {{ truncate(slotProps.data.predicate, 40, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.predicate)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.predicate}}">
+                       :to="{name: 'ExplorePage',
+                        params: {name:this.repository.id.value},
+                         query:{resource: encodeURIComponent(slotProps.data.predicate)}}">
             {{ slotProps.data.predicate }}
           </router-link>
           <Button icon="pi pi-copy" @click="copyToClipboard(slotProps.data.predicate)"
@@ -72,12 +80,16 @@
       <Column header="Object">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.object.length > 40" @click="query(slotProps.data.object)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.object}}"
+                       :to="{name: 'ExplorePage',
+                        params: {name:this.repository.id.value},
+                         query:{resource: encodeURIComponent(slotProps.data.object)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.object) }">
             {{ truncate(slotProps.data.object, 40, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.object)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.object}}">
+                       :to="{name: 'ExplorePage',
+                       params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.object)}}">
             {{ slotProps.data.object }}
           </router-link>
           <Button icon="pi pi-copy" @click="copyToClipboard(slotProps.data.object)"
@@ -87,12 +99,16 @@
       <Column header="Context">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.context.length > 40" @click="query(slotProps.data.context)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.context}}"
+                       :to="{name: 'ExplorePage',
+                        params: {name:this.repository.id.value},
+                        query:{resource: encodeURIComponent(slotProps.data.context)}}"
                        v-tooltip.right="{ value: slotProps.data.context }">
             {{ truncate(slotProps.data.context, 40, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.context)"
-                       :to="{name: 'ExplorePage', params: {name:this.$store.state.selectedRepository.id.value}, query:{resource: slotProps.data.context}}">
+                       :to="{name: 'ExplorePage',
+                        params: {name:this.repository.id.value},
+                        query:{resource: encodeURIComponent(slotProps.data.context)}}">
             {{ slotProps.data.context }}
           </router-link>
         </template>
@@ -117,6 +133,9 @@ import helperUtils from "@/services/helperUtils";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import {useVuelidate} from "@vuelidate/core";
 import {required} from "@vuelidate/validators";
+import {mapActions, mapState} from "pinia";
+import {useStore} from "@/store/store";
+import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
 
 export default defineComponent({
   name: "ExplorePage",
@@ -126,6 +145,7 @@ export default defineComponent({
   data() {
     return {
       tableData: [] as Statement[],
+      wholeData: [] as Statement[],
       resource: '' as string,
       apiService: null as unknown as APIService,
       helperUtils: null as unknown as helperUtils,
@@ -144,6 +164,7 @@ export default defineComponent({
       ],
       downloadData: null as any,
       submitted: false,
+      repository: {} as Repository,
     }
   },
   validations() {
@@ -153,29 +174,40 @@ export default defineComponent({
       }
     }
   },
+  computed: {
+    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getNamespaces'])
+  },
   created() {
     this.apiService = new APIService()
     this.helperUtils = new helperUtils()
+    this.repository = this.selectedRepository
   },
   mounted() {
+    // this.apiService.getRepositorySize(this.name).then(count => {
+    //   if (count >  50000) {
+    //
+    //   }
+    // })
     this.loading = true
     this.apiService.getStatements(this.name).then(data => {
-      const namespaces = this.$store.state.namespaces
+      const namespaces = this.getNamespaces
       this.tableData = this.helperUtils.prepareStatements(data, namespaces)
+      this.wholeData = this.tableData
       this.loading = false
     })
   },
   methods: {
     query(queryString: string) {
-      this.resource = queryString
-      // this.apiService.query(this.name, )
+      this.tableData = this.wholeData.filter(value => value.object === queryString || value.predicate === queryString
+      || value.subject === queryString || value.context === queryString)
     },
     async downloadFile(isFormValid: any) {
       this.submitted = true;
       if (!isFormValid) {
         return;
       }
-      const dataFormat = this.helperUtils.findDataFormat(this.selectedFormat.extension)
+      const dataFormat = this.helperUtils.findDataFormatFromExtension(this.selectedFormat.extension)
       const data = await this.apiService.getStatementsForDownload(this.name, dataFormat)
       const blob = new Blob([data], {type: dataFormat})
       const href = URL.createObjectURL(blob)
@@ -236,7 +268,7 @@ export default defineComponent({
   justify-content: center;
   align-items: center;
   align-content: flex-start;
-  row-gap: 50px;
+  row-gap: 30px;
   position: absolute;
   top: 100px;
   left: 200px;

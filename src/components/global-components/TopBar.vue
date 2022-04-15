@@ -1,5 +1,5 @@
 <template>
-  <div class="top-bar" :style="{ 'margin-left': this.$store.state.collapsed ? '50px' : '200px' }">
+  <div class="top-bar" style="margin-left: 200px">
     <div class="container">
 
       <div class="item">
@@ -7,18 +7,21 @@
       </div>
       <div class="item">
         <div>
-          <span class="info">RDF4J Server: Server</span>
+          <span class="info">RDF4J Server: {{ rdfServerChanged }} </span>
         </div>
         <div>
-          <span class="info">Repository : {{ repositoryChanged }}</span>
+          <span class="info">Repository: {{ repositoryChanged }}</span>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import {defineComponent} from "vue";
+import {mapActions, mapState} from "pinia";
+import {useStore} from "@/store/store";
+import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
 
 
 export default defineComponent({
@@ -26,12 +29,22 @@ export default defineComponent({
   props: ['title'],
   data() {
     return {
-      repositoryName: '',
+      repository: {id: {type: "", value: ""}} as Repository,
+      rdfUrl: '' as string
     }
   },
+  mounted() {
+    this.repository = this.selectedRepository
+    this.rdfUrl = this.rdfServerUrl
+  },
   computed: {
+    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['rdfServerUrl']),
     repositoryChanged() {
-      return this.$store.state.selectedRepository.id.value
+      return this.repository.id.value
+    },
+    rdfServerChanged() {
+      return this.rdfServerUrl
     }
   }
 })
@@ -58,7 +71,7 @@ export default defineComponent({
   .item{
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    width: 50%;
     gap: 15px;
   }
   .title {

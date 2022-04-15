@@ -16,7 +16,7 @@
             <InputText class="input" type="text" v-model="serverUrl" />
           </div>
           <div>
-            <Button label="CHANGE" @click="isJava"></Button>
+            <Button label="CHANGE" @click="changeServer"></Button>
           </div>
         </div>
         <div class="sub-sub-container">
@@ -51,6 +51,8 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
+import {mapActions} from "pinia";
+import useStore from "@/store/store";
 
 
 export default defineComponent({
@@ -63,9 +65,12 @@ export default defineComponent({
     }
   },
   methods: {
-    // changeServer() {
-    //
-    // }
+    ...mapActions(useStore, ['setRdfServerUrl']),
+    changeServer() {
+      this.setRdfServerUrl(this.serverUrl)
+      this.serverUrl = ''
+      //todo: presemrovanie na repositories, nastavit prazdny repozitar
+    }
   }
 })
 </script>

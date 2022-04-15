@@ -16,7 +16,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>{{ this.$store.state.selectedRepository.id.value }}</span>
+                <span>{{ this.repository.id.value }}</span>
               </div>
             </div>
           </div>
@@ -26,7 +26,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>{{ this.$store.state.selectedRepository.title.value }}</span>
+                <span>{{ this.repository.title.value }}</span>
               </div>
             </div>
           </div>
@@ -36,7 +36,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>{{ this.$store.state.selectedRepository.uri.value }}</span>
+                <span>{{ repository.uri.value }}</span>
               </div>
             </div>
           </div>
@@ -46,7 +46,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>Nejaky textaaaaaaaa</span>
+                <span>{{ rdfServer }}</span>
               </div>
             </div>
           </div>
@@ -61,7 +61,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>100000</span>
+                <span>{{ getNumberOfStatements }}</span>
               </div>
             </div>
           </div>
@@ -71,7 +71,7 @@
             </div>
             <div>
               <div class="text-background">
-                <span>1</span>
+                <span>{{ getNumberOfContexts }}</span>
               </div>
             </div>
           </div>
@@ -148,10 +148,12 @@
 import {defineComponent} from "vue";
 import {Context, Namespace, Type} from "@/views/Explore/types/ExploreTypes";
 import APIService from "@/services/APIService";
-import {SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
+import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import {useVuelidate} from "@vuelidate/core";
 import {required} from "@vuelidate/validators";
+import {mapActions, mapState} from "pinia";
+import useStore from "@/store/store";
 
 export default defineComponent({
   name: "AboutRepositoryPage",
@@ -162,9 +164,9 @@ export default defineComponent({
     return {
       activeTab: -1,
       items: [
-        {label: 'Types', to: {name: 'Types', params: {name: this.$store.state.selectedRepository.id.value}}},
-        {label: 'Context', to: {name: 'Context', params: {name: this.$store.state.selectedRepository.id.value}}},
-        {label: 'Namespaces', to: {name: 'Namespaces', params: {name: this.$store.state.selectedRepository.id.value}}}
+        {label: 'Types', to: {name: 'Types', params: {name: this.name}}},
+        {label: 'Context', to: {name: 'Context', params: {name: this.name}}},
+        {label: 'Namespaces', to: {name: 'Namespaces', params: {name: this.name}}}
       ],
       types: [] as Type[],
       contexts: [] as Context[],
@@ -176,7 +178,13 @@ export default defineComponent({
       prefixes: [] as SelectedItem[],
       apiService: null as unknown as APIService,
       submitted: false,
-      isPrefixMissing: false
+      isPrefixMissing: false,
+      repository: {
+        id: {type: "", value: ""},
+        title: {type: "", value: ""},
+        uri: {type: "", value: ""}
+      } as Repository,
+      rdfServer: '',
     }
   },
   validations() {
@@ -189,20 +197,31 @@ export default defineComponent({
       }
     }
   },
+  computed: {
+    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getRdfServerUrl']),
+    ...mapState(useStore, ['getNumberOfStatements']),
+    ...mapState(useStore, ['getNumberOfContexts']),
+  },
+  mounted() {
+    this.repository = this.selectedRepository
+    this.rdfServer = this.getRdfServerUrl
+  },
   created() {
     this.apiService = new APIService()
   },
   methods: {
+    ...mapActions(useStore, ['setNamespaces']),
     async changeTab(event: any) {
       this.activeTab = event.index;
       if (event.index === 0) {
-        this.apiService.getTypesOfRepository(this.$store.state.selectedRepository.id.value).then((data: Type[]) => this.types = data)
+        this.apiService.getTypesOfRepository(this.selectedRepository.id.value).then((data: Type[]) => this.types = data)
       } else if (event.index === 1) {
-        this.apiService.getContextsOfRepository(this.$store.state.selectedRepository.id.value).then((data: Context[]) => this.contexts = data)
+        this.apiService.getContextsOfRepository(this.selectedRepository.id.value).then((data: Context[]) => this.contexts = data)
       } else {
-        await this.apiService.getNamespacesOfRepository(this.$store.state.selectedRepository.id.value).then((data: Namespace[]) => {
+        await this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
           this.namespaces = data
-          this.$store.dispatch('setNamespaces', this.namespaces)
+          this.setNamespaces(this.namespaces)
           this.prefixes = []
           for (let namespace in this.namespaces) {
             const prefix = {
@@ -226,8 +245,8 @@ export default defineComponent({
       if (!isFormValid) {
         return
       }
-      await this.apiService.updateNamespaceOfRepository(this.$store.state.selectedRepository.id.value, this.prefix, this.namespace)
-      this.apiService.getNamespacesOfRepository(this.$store.state.selectedRepository.id.value).then((data: Namespace[]) => {
+      await this.apiService.updateNamespaceOfRepository(this.selectedRepository.id.value, this.prefix, this.namespace)
+      this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
         this.namespaces = data
         this.prefixes = []
         for (let namespace in this.namespaces) {
@@ -248,7 +267,7 @@ export default defineComponent({
         this.isPrefixMissing = true
         return
       }
-      this.apiService.deleteNamespaceOfRepository(this.$store.state.selectedRepository.id.value, this.prefix)
+      this.apiService.deleteNamespaceOfRepository(this.selectedRepository.id.value, this.prefix)
       this.namespaces = this.namespaces.filter(val => val.prefix.value !== this.selectedNamespace.prefix.value)
       this.prefixes = this.prefixes.filter(val => val.name !== this.selectedNamespace.prefix.value)
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Namespace Deleted', life: 3000})

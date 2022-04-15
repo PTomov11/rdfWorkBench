@@ -11,7 +11,7 @@
         <Column>
           <template #body="slotProps">
             <Button icon="pi pi-check" class="p-button-rounded"
-                    :disabled="selectedRepository === slotProps.data.id.value"
+                    :disabled="this.selectedRepository.id.value === slotProps.data.id.value"
                     @click="selectRepository(slotProps.data)"/>
             <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px"
                     @click="confirmDeleteRepository(slotProps.data)"/>
@@ -106,6 +106,8 @@ import {useVuelidate} from "@vuelidate/core";
 import APIService from "@/services/APIService.ts";
 import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
+import {mapActions, mapState} from "pinia";
+import useStore from "@/store/store";
 
 export default defineComponent({
   name: "RepositoriesPage",
@@ -161,12 +163,13 @@ export default defineComponent({
     })
   },
   computed: {
-    selectedRepository() {
-      return this.$store.state.selectedRepository.id.value
-    }
+    ...mapState(useStore, ['selectedRepository']),
   },
 
   methods: {
+    ...mapActions(useStore, ['setRepository']),
+    ...mapActions(useStore, ['setNumberOfStatements']),
+    ...mapActions(useStore, ['setNumberOfContexts']),
     confirmDeleteRepository(repository: any) {
       this.repositoryToDelete = repository
       this.deleteRepositoryDialog = true
@@ -179,14 +182,20 @@ export default defineComponent({
       this.deleteRepositoryDialog = false
     },
     selectRepository(repository: Repository) {
-      this.$store.dispatch('changeSelectedRepository', repository)
+      this.setRepository(repository)
+      this.apiService.getRepositorySize(this.selectedRepository.id.value).then(count => {
+        this.setNumberOfStatements(parseInt(count))
+      })
+      this.apiService.getRepositoryContexts(this.selectedRepository.id.value).then(count => {
+        this.setNumberOfContexts(count.split(/\r\n/).length - 2)
+      })
       this.$toast.add({
         severity: 'info',
         summary: 'Repository Selected',
         detail: 'Name: ' + repository.id.value,
         life: 3000
       })
-      this.$router.push({name: 'AboutRepositoryPage', params: {name: this.$store.state.selectedRepository.id.value}})
+      this.$router.push({name: 'AboutRepositoryPage', params: {name: this.selectedRepository.id.value}})
     },
     openModal() {
       this.displayModal = true
@@ -224,8 +233,8 @@ export default defineComponent({
   align-items: center;
   top: 100px;
   left: 200px;
-  width: 89%;
-  height: 89%;
+  width: 89vw;
+  height: 89vh;
   background-color: #DCD6D6;
 
 }
