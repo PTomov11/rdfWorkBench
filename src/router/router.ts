@@ -16,14 +16,10 @@ const routes = [
         component: HomePage
     },
     {
-        path: '/repositories',
+        path: '/repositories/:name?',
         name: 'RepositoriesPage',
         component: RepositoriesPage,
-    },
-    {
-        path: '/repositories/:name',
-        name: 'RepositoriesPageSelected',
-        component: RepositoriesPage,
+        props: true,
     },
     {
         path: '/repositories/:name/explore',
@@ -31,27 +27,12 @@ const routes = [
         component: ExplorePage,
         props: true
     },
-
     {
         path: '/repositories/:name/about',
         name: 'AboutRepositoryPage',
         component: AboutRepositoryPage,
         props: true,
-    },
-    {
-        path: '/repositories/:name/about/types',
-        name: 'Types',
-        component: AboutRepositoryPage
-    },
-    {
-        path: '/repositories/:name/about/context',
-        name: 'Context',
-        component: AboutRepositoryPage
-    },
-    {
-        path: '/repositories/:name/about/namespaces',
-        name: 'Namespaces',
-        component: AboutRepositoryPage
+
     },
     {
         path: '/repositories/:name/query',
@@ -62,6 +43,7 @@ const routes = [
         path: '/repositories/:name/queryResult',
         name: 'QueryResultPage',
         component: QueryResultPage,
+        props: true,
     },
     {
         path: '/update',

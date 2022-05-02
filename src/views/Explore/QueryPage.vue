@@ -19,36 +19,6 @@
     <div>
       <Textarea class="editor" id="editor"></Textarea>
     </div>
-
-    <div style="display:flex;justify-content: space-between">
-      <Button label="BACK TO QUERY" @click="rerenderPage"></Button>
-    </div>
-
-    <div v-if="isExecuted && isAskQueryExecuted">
-      <span>{{ askQueryResult }}</span>
-    </div>
-
-    <DataTable v-if="isExecuted && !isAskQueryExecuted" :value="queryResults" :paginator="true" :alwaysShowPaginator="false" :rows="9"
-               :loading="loading"
-               paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-               :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
-               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
-      <Column v-for="(col,index) of columns" :header="col.header" :key="col.field">
-        <template #body="slotProps">
-          <span v-if="slotProps.data[index].length > 30"
-                v-tooltip.right="{ value: slotProps.data[index] }">{{ truncate(slotProps.data[index], 30, '...') }}</span>
-          <span v-else>{{ slotProps.data[index] }}</span>
-        </template>
-      </Column>
-      <template #paginatorstart>
-        <Button type="button" icon="pi pi-refresh" class="p-button-text"/>
-      </template>
-      <template #paginatorend>
-        <Button type="button" icon="pi pi-cloud" class="p-button-text"/>
-      </template>
-    </DataTable>
-
-
   </div>
 
   <Dialog header="Saved Queries" v-model:visible="displayModal" :modal="true">
@@ -58,7 +28,7 @@
         <Column :exportable="false">
           <template #body="slotProps">
             <Button icon="pi pi-check" class="p-button-rounded" @click="selectQuery(slotProps.data)"/>
-            <Button icon="pi pi-user-edit" class="p-button-rounded" style="margin-left: 20px;"
+            <Button icon="pi pi-pencil" class="p-button-rounded" style="margin-left: 20px;"
                     @click="openEditQueryModal(slotProps.data)"/>
             <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px;"
                     @click="confirmDeleteQuery(slotProps.data)"/>
@@ -118,7 +88,7 @@ import {defineComponent} from "vue";
 import APIService from "@/services/APIService";
 import helperUtils from "@/services/helperUtils";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
-import {mapState} from "pinia";
+import {mapActions, mapState} from "pinia";
 import {useStore} from "@/store/store";
 
 export default defineComponent({
@@ -143,9 +113,6 @@ export default defineComponent({
       editQueryName: '',
       editQueryValue: '',
       oldQueryName: '',
-      isExecuted: false,
-      isAskQueryExecuted: false,
-      askQueryResult: false,
     }
   },
   computed: {
@@ -176,7 +143,7 @@ export default defineComponent({
         localStorage.removeItem('savedQueries');
       }
     }
-
+    /** Function to track cahnges in CodeMirror editor **/
     this.editor.on("change", (cm: any, change: any) => {
       var before = cm.getRange({line: 0, ch: 0}, change.from);
       var after = cm.getRange(change.to, {line: cm.lineCount() + 1, ch: 0});
@@ -184,6 +151,8 @@ export default defineComponent({
     })
   },
   methods: {
+    ...mapActions(useStore, ['setQueryResults']),
+    ...mapActions(useStore, ['setColumns']),
     openSavedQueries() {
       this.displayModal = true
     },
@@ -191,10 +160,14 @@ export default defineComponent({
       toRaw(this.editor).setValue('')
     },
     saveQuery() {
-      var query = {
+      if (this.queryName === '') {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Missing query name!', life: 3000})
+        return
+      }
+      const query = {
         name: this.queryName,
         value: this.content
-      } as SavedQuery
+      } as SavedQuery;
       this.savedQueries.push(query)
       this.queryName = ''
       toRaw(this.editor).setValue('')
@@ -214,36 +187,26 @@ export default defineComponent({
       this.displayModal = false;
       toRaw(this.editor).setValue(query.value)
     },
-    async execute() {
-      this.isExecuted = true
+    execute() {
+      if (this.content.toLowerCase().includes("insert") || this.content.toLowerCase().includes("delete")) {
+        this.$toast.add({severity: 'warn', summary: 'Warning', detail: 'For Update query visit Update page', life: 3000})
+        return
+      }
+      if (!this.content.length) {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Query is empty!', life: 3000})
+        return
+      }
       var isAskQuery = false
       this.loading = true
       if (this.content.toLowerCase().includes("ask")) {
         isAskQuery = true
       }
-      await this.apiService.query(this.selectedRepository.id.value, encodeURIComponent(this.content), isAskQuery).then(data => {
-        if (isAskQuery) {
-          this.isAskQueryExecuted = true
-          this.askQueryResult = data
-        } else {
-          this.isAskQueryExecuted = false
-          const namespaces = this.getNamespaces
-          //Prepare colums
-          this.columns = this.helperUtils.prepareColumnsOfQuery(data)
-          //Prepare data
-          this.queryResults = this.helperUtils.prepareResultsOfQuery(data, this.columns, namespaces)
-        }
-        this.loading = false
-      })
-    },
-    rerenderPage() {
-      this.$router.push({name: 'QueryPage', params: {name: this.selectedRepository.id.value}})
-    },
-    truncate(text: string, length: number, suffix: any) {
-      if (text.length > length) {
-        return text.substring(0, length) + suffix;
+      if (isAskQuery) {
+        this.$router.push({name: 'QueryResultPage', params: {name: this.selectedRepository.id.value, isAskQuery: isAskQuery ? 'true' : 'false'},
+          query:{resource: encodeURIComponent(this.content)}})
       } else {
-        return text;
+        this.$router.push({name: 'QueryResultPage', params: {name: this.selectedRepository.id.value, isAskQuery: isAskQuery ? 'true' : 'false'},
+          query:{resource: encodeURIComponent(this.content)}})
       }
     },
     saveQueriesToBrowser() {
@@ -257,13 +220,17 @@ export default defineComponent({
       this.editQueryValue = query.value
     },
     saveEditedQuery() {
-      var query = {
+      var editedQuery = {
         name: this.editQueryName,
         value: this.editQueryValue
       } as SavedQuery
+      if (this.savedQueries.some(query => query.name === editedQuery.name)) {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Query with this name already exists!', life: 3000})
+        return
+      }
       this.savedQueries = this.savedQueries.filter(val => val.name !== this.oldQueryName)
-      this.savedQueries.push(query)
-      this.oldQueryName = query.name
+      this.savedQueries.push(editedQuery)
+      this.oldQueryName = editedQuery.name
       this.saveQueriesToBrowser()
       this.editModal = false
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Query Saved', life: 3000})
@@ -275,21 +242,23 @@ export default defineComponent({
 <style scoped>
 .main {
   display: flex;
-  justify-content: flex-start;
-  flex-direction: column;
-  position: absolute;
-  gap: 10px;
-  top: 100px;
-  left: 200px;
-  width: 89%;
-  height: 89%;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  height: calc(100vh - 100px);
+  overflow: auto;
   background-color: #DCD6D6;
-  padding: 20px 20px 20px 20px;
+  transition: 0.3s ease;
+  align-content: flex-start;
+  row-gap: 30px;
 }
 
 .filter {
+  margin-top: 20px;
   height: 100px;
   display: flex;
+  width: 1600px;
+  justify-content: center;
   flex-direction: row;
   background-color: white;
   border-radius: 10px;
