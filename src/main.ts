@@ -22,7 +22,7 @@ import FileUpload from 'primevue/fileupload';
 import Checkbox from 'primevue/checkbox';
 import SelectButton from 'primevue/selectbutton';
 import { createPinia } from 'pinia'
-
+import TieredMenu from "primevue/tieredmenu";
 
 const app = createApp(App)
 app.use(createPinia())
@@ -31,6 +31,7 @@ app.use(router)
 app.use(ToastService)
 app.directive('tooltip', Tooltip)
 app.component('TabMenu', TabMenu)
+app.component('TieredMenu', TieredMenu)
 app.component('SelectButton', SelectButton)
 app.component('Checkbox', Checkbox)
 app.component('FileUpload', FileUpload)

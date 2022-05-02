@@ -1,5 +1,10 @@
 import {IdObject} from "@/views/Repositories/types/RepositoriesTypes";
 
+export type ResultObject = {
+    type: string,
+    value: string
+}
+
 export type SavedQuery = {
     name: string,
     value: string
@@ -30,3 +35,9 @@ export type Column = {
     field: string,
     header: string
 }
+export type LazyParam = {
+    page: number,
+    first: number,
+    rows: number,
+    pageCount: number,
+} | null

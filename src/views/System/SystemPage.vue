@@ -1,51 +1,25 @@
 <template>
+  <Toast/>
   <MenuLayout title="System Information" active-section="System"></MenuLayout>
 
   <div class="main">
     <div class="container">
-
       <div class="header">
         <span>Change RDF4J Server</span>
       </div>
       <div class="sub-container">
-        <div class="sub-sub-container">
-          <div class="sub-header">
-            <span>RDF4J Server URL</span>
-          </div>
-          <div>
-            <InputText class="input" type="text" v-model="serverUrl" />
-          </div>
-          <div>
-            <Button label="CHANGE" @click="changeServer"></Button>
-          </div>
+        <div class="sub-header">
+          <span>RDF4J Server URL</span>
         </div>
-        <div class="sub-sub-container">
-          <div class="sub-header">
-            <span>Runtime Information</span>
-          </div>
-          <div class="sub-sub-header">
-            <span>Operating system</span>
-          </div>
-          <div>
-            <div class="text-background">
-              <span>{{this.operatingSystem}}</span>
-            </div>
-          </div>
-          <div class="sub-sub-header">
-            <span>Java Runtime</span>
-          </div>
-          <div>
-            <div class="text-background">
-              <span></span>
-            </div>
-          </div>
+        <div>
+          <InputText class="input" type="text" v-model="serverUrl" />
+        </div>
+        <div>
+          <Button label="CHANGE" @click="changeServer"></Button>
         </div>
       </div>
     </div>
   </div>
-
-
-
 </template>
 
 <script lang="ts">
@@ -67,6 +41,10 @@ export default defineComponent({
   methods: {
     ...mapActions(useStore, ['setRdfServerUrl']),
     changeServer() {
+      if (this.serverUrl === '') {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Empty server value!', life: 3000})
+        return
+      }
       this.setRdfServerUrl(this.serverUrl)
       this.serverUrl = ''
       //todo: presemrovanie na repositories, nastavit prazdny repozitar
@@ -77,33 +55,32 @@ export default defineComponent({
 
 <style scoped>
   .main {
-    padding: 30px 30px 30px 30px;
     display: flex;
     justify-content: flex-start;
     flex-direction: column;
-    position: absolute;
-    top: 100px;
-    left: 200px;
-    width: 89%;
-    min-height: 89%;
+    align-items: center;
+    height: calc(100vh - 100px);
+    overflow: auto;
     background-color: #DCD6D6;
+    transition: 0.3s ease;
   }
   .container {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 20px;
   }
   .sub-container {
-    position: relative;
-    padding: 30px 30px 30px 30px;
-    height: 250px;
-    background-color: white;
     border-radius: 10px;
     display: flex;
-    flex-direction: row;
+    width: 600px;
+    height: 250px;
+    flex-direction: column;
     gap: 5px;
+    padding: 30px 30px 30px 30px;
+    background-color: white;
   }
   .header {
+    text-align: center;
     font-size: 40px;
     font-weight: bold;
   }
@@ -111,15 +88,7 @@ export default defineComponent({
     font-size: 30px;
     font-weight: bold;
   }
-  .sub-sub-header {
-    font-size: 25px;
-  }
-  .sub-sub-container {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    gap: 10px;
-  }
+
   .text-background {
     display: inline-block;
     background-color: #DCD6D6;

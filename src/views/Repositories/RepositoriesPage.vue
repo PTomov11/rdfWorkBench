@@ -2,24 +2,26 @@
   <Toast/>
   <MenuLayout title="Repositories" active-section="Repositories"></MenuLayout>
 
-  <div class="main">
-    <div class="item">
-      <DataTable :value="repositories" data-key="id.value" :scrollable="true" scrollHeight="500px" :loading="loading">
-        <Column field="id.value" header="Name" style="min-width:300px" :sortable="true"></Column>
-        <Column field="title.value" header="Description" style="min-width:300px" :sortable="true"></Column>
-        <Column field="uri.value" header="Location" style="min-width:700px" :sortable="true"></Column>
-        <Column>
-          <template #body="slotProps">
-            <Button icon="pi pi-check" class="p-button-rounded"
-                    :disabled="this.selectedRepository.id.value === slotProps.data.id.value"
-                    @click="selectRepository(slotProps.data)"/>
-            <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px"
-                    @click="confirmDeleteRepository(slotProps.data)"/>
-          </template>
-        </Column>
-      </DataTable>
-      <div class="button-container">
-        <Button class="create-button" label="CREATE NEW REPOSITORY" @click="openModal"></Button>
+  <div class="content-wrapper">
+    <div class="main" :style="{ 'left': this.getSideBarWidth }">
+      <div class="item">
+        <DataTable :value="repositories" data-key="id.value" :scrollable="true" scrollHeight="500px" :loading="loading">
+          <Column field="id.value" header="Name" style="min-width:300px" :sortable="true"></Column>
+          <Column field="title.value" header="Description" style="min-width:300px" :sortable="true"></Column>
+          <Column field="uri.value" header="Location" style="min-width:700px" :sortable="true"></Column>
+          <Column>
+            <template #body="slotProps">
+              <Button icon="pi pi-check" class="p-button-rounded"
+                      :disabled="this.selectedRepository.id.value === slotProps.data.id.value"
+                      @click="selectRepository(slotProps.data)"/>
+              <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px"
+                      @click="confirmDeleteRepository(slotProps.data)"/>
+            </template>
+          </Column>
+        </DataTable>
+        <div class="button-container">
+          <Button class="create-button" label="CREATE NEW REPOSITORY" @click="openModal"></Button>
+        </div>
       </div>
     </div>
   </div>
@@ -40,19 +42,19 @@
       <h3>Create Repository</h3>
     </template>
     <form @submit.prevent="handleSubmit(!v$.$invalid)" class="p-fluid filter">
-      <div class="field input-container">
+      <div class="input-container">
         <div style="width: 120px">
           <span>Type: </span>
         </div>
         <div class="p-float-label">
-          <Dropdown v-model="v$.selectedStore.$model"
+          <Dropdown id="memoryDropdown" v-model="v$.selectedStore.$model"
                     :class="{'p-invalid':v$.selectedStore.$invalid && submitted}" :options="stores" optionLabel="name"
                     placeholder="Select a Store"/>
         </div>
         <small v-if="(v$.selectedStore.$invalid && submitted) || v$.selectedStore.$pending.$response" class="p-error">
           {{ v$.selectedStore.required.$message.replace('Value', 'Type') }}</small>
       </div>
-      <div class="field input-container">
+      <div class="input-container">
         <div style="width: 120px">
           <span>Name: </span>
         </div>
@@ -63,7 +65,7 @@
         <small v-if="(v$.repositoryName.$invalid && submitted) || v$.repositoryName.$pending.$response"
                class="p-error">{{ v$.repositoryName.required.$message.replace('Value', 'Name') }}</small>
       </div>
-      <div class="field input-container">
+      <div class="input-container">
         <div style="width: 120px">
           <span>Title: </span>
         </div>
@@ -74,15 +76,15 @@
         <small v-if="(v$.title.$invalid && submitted) || v$.title.$pending.$response"
                class="p-error">{{ v$.title.required.$message.replace('Value', 'Title') }}</small>
       </div>
-      <div class="field input-container">
+      <div class="input-container">
         <div style="width: 120px">
           <span>Persist: </span>
         </div>
         <div class="p-float-label">
-          <ToggleButton v-model="persist" onIcon="pi pi-check" offIcon="pi pi-times"/>
+          <ToggleButton id="persistButton" v-model="persist" onIcon="pi pi-check" offIcon="pi pi-times"/>
         </div>
       </div>
-      <div class="field input-container">
+      <div class="input-container">
         <div style="width: 120px">
           <span>Sync delay: </span>
         </div>
@@ -108,6 +110,7 @@ import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesT
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import {mapActions, mapState} from "pinia";
 import useStore from "@/store/store";
+import {Namespace} from "@/views/Explore/types/ExploreTypes";
 
 export default defineComponent({
   name: "RepositoriesPage",
@@ -164,24 +167,29 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getSideBarWidth']),
   },
 
   methods: {
     ...mapActions(useStore, ['setRepository']),
     ...mapActions(useStore, ['setNumberOfStatements']),
     ...mapActions(useStore, ['setNumberOfContexts']),
+    ...mapActions(useStore, ['setNamespaces']),
     confirmDeleteRepository(repository: any) {
       this.repositoryToDelete = repository
       this.deleteRepositoryDialog = true
     },
     deleteRepository() {
       this.apiService.deleteRepository(this.repositoryToDelete.id.value)
+      if (this.repositoryToDelete.id.value === this.selectedRepository.id.value) {
+        this.setRepository({id: { type:"", value: ""}, title: { type:"", value: ""}, uri: { type:"", value: ""}})
+      }
       this.repositories = this.repositories.filter(val => val.id.value !== this.repositoryToDelete.id.value)
       this.repositoryToDelete = {} as Repository
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Repository Deleted', life: 3000})
       this.deleteRepositoryDialog = false
     },
-    selectRepository(repository: Repository) {
+    async selectRepository(repository: Repository) {
       this.setRepository(repository)
       this.apiService.getRepositorySize(this.selectedRepository.id.value).then(count => {
         this.setNumberOfStatements(parseInt(count))
@@ -189,13 +197,16 @@ export default defineComponent({
       this.apiService.getRepositoryContexts(this.selectedRepository.id.value).then(count => {
         this.setNumberOfContexts(count.split(/\r\n/).length - 2)
       })
+      await this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
+        this.setNamespaces(data)
+      })
       this.$toast.add({
         severity: 'info',
         summary: 'Repository Selected',
         detail: 'Name: ' + repository.id.value,
         life: 3000
       })
-      this.$router.push({name: 'AboutRepositoryPage', params: {name: this.selectedRepository.id.value}})
+      await this.$router.push({name: 'AboutRepositoryPage', params: {name: this.selectedRepository.id.value}})
     },
     openModal() {
       this.displayModal = true
@@ -219,30 +230,31 @@ export default defineComponent({
       this.repositoryName = ''
       this.title = ''
       this.delay = 0
+      this.persist = false
+      this.submitted = false
     }
   }
-
 })
 </script>
 
 <style scoped>
 .main {
   display: flex;
-  position: absolute;
   justify-content: center;
   align-items: center;
-  top: 100px;
-  left: 200px;
-  width: 89vw;
-  height: 89vh;
+  height: calc(100vh - 100px);
   background-color: #DCD6D6;
+  transition: 0.3s ease;
+  overflow: auto;
+}
 
+.content-wrapper {
+  height: calc(100vh - 100px);
 }
 
 .create-button {
   height: 50px;
   width: 1350px;
-  background: #6583A7;
 }
 
 .button-container {
@@ -284,5 +296,24 @@ span {
 }
 :deep(.p-button-text) {
   background-color: #0A2341;
+}
+
+@media only screen and (max-width: 1200px) {
+  .main {
+    width: fit-content;
+    height: 100vh;
+  }
+  .wrapper {
+    height: max-content;
+  }
+  .item {
+    padding: 0 50px 0 50px;
+  }
+  .info {
+    font-size: 20px;
+  }
+  .content-wrapper {
+    height: max-content;
+  }
 }
 </style>

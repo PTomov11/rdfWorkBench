@@ -3,13 +3,23 @@
 * {
     font-family: Montserrat,serif;
 }
+body {
+    margin: 0;
+}
+.wrapper {
+    margin: 0 auto;
+    position: relative;
+    height: 100vh;
 
+}
 /*Input fields styles*/
 .input {
     width: 400px;
-    background-color: #DCD6D6;
+    border-color: black;
 }
-
+.p-inputtextarea {
+    border-color: black;
+}
 .p-inputtext:enabled:focus {
     border-color: #0A2341;
     box-shadow: 0 0 0 0.2rem #6583A7;
@@ -17,6 +27,12 @@
 
 .p-inputtext:enabled:hover {
     border-color: #0A2341;
+}
+
+.p-inputtext:disabled {
+    background-color: #DCD6D6;
+    cursor: not-allowed;
+    pointer-events: all !important;
 }
 
 /*Dropdown styles*/
@@ -35,16 +51,16 @@
     font-weight: bold;
 }
 .p-button {
-    background-color: #6583A7;
+    background-color: #0A2341;
 }
 .p-button:enabled:hover {
-    background-color: #0A2341;
+    background-color: #6583A7;
 }
 .p-button:focus {
     box-shadow: 0 0 0 0.2rem #566F8C;
 }
 .p-fileupload-choose:not(.p-disabled):hover {
-    background: #0A2341;
+    background: #6583A7;
 }
 .p-checkbox .p-checkbox-box.p-highlight {
     background: #6583A7;
@@ -68,7 +84,7 @@
 .p-datatable-wrapper {
     border-radius: 10px;
 }
-.p-paginator {
+.p-datatable .p-paginator-bottom {
     border-radius: 10px;
 }
 

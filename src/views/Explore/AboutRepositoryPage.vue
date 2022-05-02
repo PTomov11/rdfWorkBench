@@ -1,4 +1,5 @@
 <template>
+  <Toast/>
   <MenuLayout title="About Repository" active-section="About"></MenuLayout>
 
   <div class="main">
@@ -15,8 +16,8 @@
               <span>Name: </span>
             </div>
             <div>
-              <div class="text-background">
-                <span>{{ this.repository.id.value }}</span>
+              <div>
+                <span>{{ repository.id.value }}</span>
               </div>
             </div>
           </div>
@@ -25,8 +26,8 @@
               <span>Title: </span>
             </div>
             <div>
-              <div class="text-background">
-                <span>{{ this.repository.title.value }}</span>
+              <div>
+                <span>{{ repository.title.value }}</span>
               </div>
             </div>
           </div>
@@ -35,7 +36,7 @@
               <span>Location: </span>
             </div>
             <div>
-              <div class="text-background">
+              <div>
                 <span>{{ repository.uri.value }}</span>
               </div>
             </div>
@@ -45,7 +46,7 @@
               <span>RDF4J Server: </span>
             </div>
             <div>
-              <div class="text-background">
+              <div>
                 <span>{{ rdfServer }}</span>
               </div>
             </div>
@@ -60,7 +61,7 @@
               <span>Number of statements: </span>
             </div>
             <div>
-              <div class="text-background">
+              <div>
                 <span>{{ getNumberOfStatements }}</span>
               </div>
             </div>
@@ -70,7 +71,7 @@
               <span>Number of labeled contexts: </span>
             </div>
             <div>
-              <div class="text-background">
+              <div>
                 <span>{{ getNumberOfContexts }}</span>
               </div>
             </div>
@@ -87,22 +88,21 @@
       <div>
         <TabMenu :model="items" @tab-change="changeTab"/>
       </div>
-      <div v-if="activeTab === -1"/>
       <div v-if="activeTab === 0">
-        <DataTable :value="types" stripedRows responsiveLayout="scroll" :scrollable="true" scrollHeight="380px">
+        <DataTable :value="types" stripedRows responsiveLayout="scroll" :scrollable="true" scrollHeight="360px">
           <Column field="type.value" header="Type" :sortable="true"></Column>
         </DataTable>
       </div>
       <div v-if="activeTab === 1">
         <DataTable :rows="10" :value="contexts" stripedRows responsiveLayout="scroll" :scrollable="true"
-                   scrollHeight="380px">
+                   scrollHeight="360px">
           <Column field="contextID.value" header="Context" :sortable="true"></Column>
         </DataTable>
       </div>
       <div v-if="activeTab === 2" class="namespaces-tab">
 
         <DataTable :value="namespaces" data-key="prefix.value" stripedRows responsiveLayout="scroll" :scrollable="true"
-                   scrollHeight="380px" style="flex-grow: 1;">
+                   scrollHeight="360px" style="flex-grow: 1;">
           <Column field="prefix.value" header="Prefix" :sortable="true" style="max-width:200px"></Column>
           <Column field="namespace.value" header="Namespace"></Column>
         </DataTable>
@@ -110,6 +110,7 @@
         <div>
           <form @submit.prevent="updateNamespace(!v$.$invalid)" class="p-fluid filter">
             <span style="font-size: 30px;font-weight: bolder">Prefix</span>
+            <Button label="CLEAR" class="clear-button" @click="clearSection"/>
             <InputText v-model="v$.prefix.$model"
                        v-on:input="resetForm"
                        :class="{'p-invalid':v$.prefix.$invalid && submitted || isPrefixMissing}"
@@ -133,9 +134,7 @@
               <Button label="DELETE" @click="deleteNamespace(!v$.prefix.$invalid)" style="width: 100px"/>
             </div>
           </form>
-
         </div>
-
       </div>
     </div>
     <router-view/>
@@ -164,9 +163,9 @@ export default defineComponent({
     return {
       activeTab: -1,
       items: [
-        {label: 'Types', to: {name: 'Types', params: {name: this.name}}},
-        {label: 'Context', to: {name: 'Context', params: {name: this.name}}},
-        {label: 'Namespaces', to: {name: 'Namespaces', params: {name: this.name}}}
+        {label: 'Types'},
+        {label: 'Context'},
+        {label: 'Namespaces'}
       ],
       types: [] as Type[],
       contexts: [] as Context[],
@@ -220,8 +219,8 @@ export default defineComponent({
         this.apiService.getContextsOfRepository(this.selectedRepository.id.value).then((data: Context[]) => this.contexts = data)
       } else {
         await this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
+          this.setNamespaces(data)
           this.namespaces = data
-          this.setNamespaces(this.namespaces)
           this.prefixes = []
           for (let namespace in this.namespaces) {
             const prefix = {
@@ -285,12 +284,17 @@ export default defineComponent({
       if (this.namespace === "") {
         this.submitted = false
       }
+    },
+    clearSection() {
+      this.prefix = ''
+      this.selectedPrefix = {name: ''}
+      this.namespace = ''
     }
   }
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .summary-header {
   font-size: 60px;
   font-weight: bolder;
@@ -317,13 +321,6 @@ export default defineComponent({
   border-radius: 10px;
 }
 
-.text-background {
-  display: inline-block;
-  background-color: #DCD6D6;
-  border-radius: 10px;
-  font-size: 18px;
-}
-
 .separator {
   height: 30px;
   background-color: #01112C;
@@ -334,12 +331,10 @@ export default defineComponent({
   display: flex;
   justify-content: flex-start;
   flex-direction: column;
-  position: absolute;
-  top: 100px;
-  left: 200px;
-  width: 89%;
-  min-height: 89%;
   background-color: #DCD6D6;
+  transition: 0.3s ease;
+  height: calc(100vh - 100px);
+  overflow: auto;
 }
 
 .summary-container {
@@ -360,16 +355,11 @@ export default defineComponent({
   flex-direction: column;
   justify-content: space-evenly;
   gap: 10px;
-
   width: 500px;
-  height: 380px;
+  height: 360px;
   background-color: white;
   border-radius: 10px;
 
-}
-
-.table {
-  min-width: 500px;
 }
 
 :deep(.p-tabmenu-nav) {
@@ -417,5 +407,10 @@ export default defineComponent({
   font-size: 20px;
   align-items: center;
   gap: 20px;
+}
+.clear-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 </style>

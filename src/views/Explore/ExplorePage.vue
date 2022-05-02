@@ -5,7 +5,7 @@
 
   <div class="main">
 
-    <div class="filter">
+    <div class="container">
       <div class="input-container">
         <div>
           <span style="font-weight: bolder;font-size: 20px">Resource: </span>
@@ -13,102 +13,102 @@
         <div>
           <InputText class="input" type="text" v-model="resource" style="width: 400px"/>
         </div>
+        <div>
+          <Button class="press-button" label="SEARCH" @click="search(resource)"></Button>
+        </div>
       </div>
       <form @submit.prevent="downloadFile(!v$.$invalid)" class="p-fluid input-container">
-
         <div style="width: 200px">
           <span style="font-weight: bolder;font-size: 20px">Download format: </span>
         </div>
         <div>
-          <Dropdown v-model="v$.selectedFormat.$model"
+          <Dropdown v-model="v$.selectedFormat.$model" class="drop-down"
                     :class="{'p-invalid':v$.selectedFormat.$invalid && submitted}" :options="formats" optionLabel="name"
                     placeholder="Select a format"/>
         </div>
         <small v-if="(v$.selectedFormat.$invalid && submitted) || v$.selectedFormat.$pending.$response" class="p-error">
           {{ v$.selectedFormat.required.$message.replace('Value', 'Format') }}</small>
         <div>
-          <Button class="download-button" type="submit" label="DOWNLOAD"></Button>
+          <Button class="press-button" type="submit" label="DOWNLOAD"></Button>
         </div>
-
       </form>
-
     </div>
 
-
-    <DataTable :value="tableData" :paginator="true" :alwaysShowPaginator="false" :rows="10" :loading="loading"
+    <DataTable v-if="!isQueryExecuted" :value="tableData" :lazy="true" :paginator="true" :rows="10" :loading="loading"
+               @page="onPage($event)" ref="dt" :totalRecords="totalRecords"
                paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
       <Column header="Subject">
         <template #body="slotProps">
-          <router-link v-if="slotProps.data.subject.length > 45" @click="query(slotProps.data.subject)"
+          <router-link v-if="slotProps.data.subject.length > 38" @click="query(slotProps.data.subject)"
                        :to="{name: 'ExplorePage',
-                       params: {name:this.repository.id.value},
-                       query:{resource: encodeURIComponent(slotProps.data.subject)}}"
+                     params: {name:this.repository.id.value},
+                     query:{resource: encodeURIComponent(slotProps.data.subject)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.subject) }">
-            {{ truncate(slotProps.data.subject, 45, '...') }}
+            {{ truncate(slotProps.data.subject, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.subject)"
                        :to="{name: 'ExplorePage',
-                        params: {name:this.repository.id.value},
-                        query:{resource: encodeURIComponent(slotProps.data.subject)}}">
+                      params: {name:this.repository.id.value},
+                      query:{resource: encodeURIComponent(slotProps.data.subject)}}">
             {{ slotProps.data.subject }}
           </router-link>
-          <Button icon="pi pi-copy" @click="copyToClipboard(slotProps.data.subject)"
+          <Button v-if="slotProps.data.subject" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.subject)"
                   style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
         </template>
       </Column>
       <Column header="Predicate">
         <template #body="slotProps">
-          <router-link v-if="slotProps.data.predicate.length > 40" @click="query(slotProps.data.predicate)"
+          <router-link v-if="slotProps.data.predicate.length > 38" @click="query(slotProps.data.predicate)"
                        :to="{name: 'ExplorePage',
-                        params: {name:this.repository.id.value},
-                         query:{resource: encodeURIComponent(slotProps.data.predicate)}}"
+                      params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.predicate)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.predicate) }">
-            {{ truncate(slotProps.data.predicate, 40, '...') }}
+            {{ truncate(slotProps.data.predicate, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.predicate)"
                        :to="{name: 'ExplorePage',
-                        params: {name:this.repository.id.value},
-                         query:{resource: encodeURIComponent(slotProps.data.predicate)}}">
+                      params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.predicate)}}">
             {{ slotProps.data.predicate }}
           </router-link>
-          <Button icon="pi pi-copy" @click="copyToClipboard(slotProps.data.predicate)"
+          <Button v-if="slotProps.data.predicate" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.predicate)"
                   style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
         </template>
       </Column>
       <Column header="Object">
         <template #body="slotProps">
-          <router-link v-if="slotProps.data.object.length > 40" @click="query(slotProps.data.object)"
+          <router-link v-if="slotProps.data.object.length > 38" @click="query(slotProps.data.object)"
                        :to="{name: 'ExplorePage',
-                        params: {name:this.repository.id.value},
-                         query:{resource: encodeURIComponent(slotProps.data.object)}}"
+                      params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.object)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.object) }">
-            {{ truncate(slotProps.data.object, 40, '...') }}
+            {{ truncate(slotProps.data.object, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.object)"
                        :to="{name: 'ExplorePage',
-                       params: {name:this.repository.id.value},
-                       query:{resource: encodeURIComponent(slotProps.data.object)}}">
+                     params: {name:this.repository.id.value},
+                     query:{resource: encodeURIComponent(slotProps.data.object)}}">
             {{ slotProps.data.object }}
           </router-link>
-          <Button icon="pi pi-copy" @click="copyToClipboard(slotProps.data.object)"
+          <Button v-if="slotProps.data.object" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.object)"
                   style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
         </template>
       </Column>
       <Column header="Context">
         <template #body="slotProps">
-          <router-link v-if="slotProps.data.context.length > 40" @click="query(slotProps.data.context)"
+          <router-link v-if="slotProps.data.context.length > 38" @click="query(slotProps.data.context)"
                        :to="{name: 'ExplorePage',
-                        params: {name:this.repository.id.value},
-                        query:{resource: encodeURIComponent(slotProps.data.context)}}"
-                       v-tooltip.right="{ value: slotProps.data.context }">
-            {{ truncate(slotProps.data.context, 40, '...') }}
+                      params: {name:this.repository.id.value},
+                      query:{resource: encodeURIComponent(slotProps.data.context)}}"
+                       v-tooltip.left="{ value: slotProps.data.context }">
+            {{ truncate(slotProps.data.context, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.context)"
                        :to="{name: 'ExplorePage',
-                        params: {name:this.repository.id.value},
-                        query:{resource: encodeURIComponent(slotProps.data.context)}}">
+                      params: {name:this.repository.id.value},
+                      query:{resource: encodeURIComponent(slotProps.data.context)}}">
             {{ slotProps.data.context }}
           </router-link>
         </template>
@@ -122,20 +122,107 @@
     </DataTable>
 
 
+
+    <DataTable v-if="isQueryExecuted" :value="tableData" :paginator="true" :rows="10" :loading="loading"
+               paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+               :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
+               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
+      <Column header="Subject">
+        <template #body="slotProps">
+          <router-link v-if="slotProps.data.subject.length > 38" @click="query(slotProps.data.subject)"
+                       :to="{name: 'ExplorePage',
+                     params: {name:this.repository.id.value},
+                     query:{resource: encodeURIComponent(slotProps.data.subject)}}"
+                       v-tooltip.right="{ value: replaceChar(slotProps.data.subject) }">
+            {{ truncate(slotProps.data.subject, 38, '...') }}
+          </router-link>
+          <router-link v-else @click="query(slotProps.data.subject)"
+                       :to="{name: 'ExplorePage',
+                      params: {name:this.repository.id.value},
+                      query:{resource: encodeURIComponent(slotProps.data.subject)}}">
+            {{ slotProps.data.subject }}
+          </router-link>
+          <Button v-if="slotProps.data.subject" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.subject)"
+                  style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
+        </template>
+      </Column>
+      <Column header="Predicate">
+        <template #body="slotProps">
+          <router-link v-if="slotProps.data.predicate.length > 38" @click="query(slotProps.data.predicate)"
+                       :to="{name: 'ExplorePage',
+                      params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.predicate)}}"
+                       v-tooltip.right="{ value: replaceChar(slotProps.data.predicate) }">
+            {{ truncate(slotProps.data.predicate, 38, '...') }}
+          </router-link>
+          <router-link v-else @click="query(slotProps.data.predicate)"
+                       :to="{name: 'ExplorePage',
+                      params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.predicate)}}">
+            {{ slotProps.data.predicate }}
+          </router-link>
+          <Button v-if="slotProps.data.predicate" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.predicate)"
+                  style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
+        </template>
+      </Column>
+      <Column header="Object">
+        <template #body="slotProps">
+          <router-link v-if="slotProps.data.object.length > 38" @click="query(slotProps.data.object)"
+                       :to="{name: 'ExplorePage',
+                      params: {name:this.repository.id.value},
+                       query:{resource: encodeURIComponent(slotProps.data.object)}}"
+                       v-tooltip.right="{ value: replaceChar(slotProps.data.object) }">
+            {{ truncate(slotProps.data.object, 38, '...') }}
+          </router-link>
+          <router-link v-else @click="query(slotProps.data.object)"
+                       :to="{name: 'ExplorePage',
+                     params: {name:this.repository.id.value},
+                     query:{resource: encodeURIComponent(slotProps.data.object)}}">
+            {{ slotProps.data.object }}
+          </router-link>
+          <Button v-if="slotProps.data.object" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.object)"
+                  style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
+        </template>
+      </Column>
+      <Column header="Context">
+        <template #body="slotProps">
+          <router-link v-if="slotProps.data.context.length > 38" @click="query(slotProps.data.context)"
+                       :to="{name: 'ExplorePage',
+                      params: {name:this.repository.id.value},
+                      query:{resource: encodeURIComponent(slotProps.data.context)}}"
+                       v-tooltip.left="{ value: slotProps.data.context }">
+            {{ truncate(slotProps.data.context, 38, '...') }}
+          </router-link>
+          <router-link v-else @click="query(slotProps.data.context)"
+                       :to="{name: 'ExplorePage',
+                      params: {name:this.repository.id.value},
+                      query:{resource: encodeURIComponent(slotProps.data.context)}}">
+            {{ slotProps.data.context }}
+          </router-link>
+        </template>
+      </Column>
+      <template #paginatorstart>
+        <Button type="button" icon="pi pi-refresh" class="p-button-text"/>
+      </template>
+      <template #paginatorend>
+        <Button type="button" icon="pi pi-cloud" class="p-button-text"/>
+      </template>
+    </DataTable>
+
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import { defineComponent } from "vue";
 import APIService from "@/services/APIService";
-import {Statement} from "@/views/Explore/types/ExploreTypes";
+import {LazyParam, Namespace, Statement} from "@/views/Explore/types/ExploreTypes";
 import helperUtils from "@/services/helperUtils";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
-import {useVuelidate} from "@vuelidate/core";
-import {required} from "@vuelidate/validators";
+import { useVuelidate } from "@vuelidate/core";
+import { required } from "@vuelidate/validators";
 import {mapActions, mapState} from "pinia";
-import {useStore} from "@/store/store";
-import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
+import { useStore } from "@/store/store";
+import { Repository } from "@/views/Repositories/types/RepositoriesTypes";
 
 export default defineComponent({
   name: "ExplorePage",
@@ -145,7 +232,7 @@ export default defineComponent({
   data() {
     return {
       tableData: [] as Statement[],
-      wholeData: [] as Statement[],
+      totalRecords: 0 as number,
       resource: '' as string,
       apiService: null as unknown as APIService,
       helperUtils: null as unknown as helperUtils,
@@ -165,6 +252,10 @@ export default defineComponent({
       downloadData: null as any,
       submitted: false,
       repository: {} as Repository,
+      isFromQueryRedirect: false as boolean,
+      lazyParams: {} as LazyParam,
+      isQueryExecuted: false as boolean,
+      rerender: 0 as number,
     }
   },
   validations() {
@@ -174,9 +265,30 @@ export default defineComponent({
       }
     }
   },
+  watch: {
+    $route(to, from ) {
+      this.isQueryExecuted = false
+      this.$forceUpdate
+      const encodedQueryString = this.$route.query.resource
+      if (typeof encodedQueryString === 'undefined') {
+        this.resource = ''
+        this.lazyParams = {
+          first: 0,
+          rows: 10,
+          page: 0,
+          pageCount: 0
+        }
+        this.loadLazyData()
+      }
+      if (typeof encodedQueryString === "string") {
+        this.query(encodedQueryString)
+      }
+    }
+  },
   computed: {
     ...mapState(useStore, ['selectedRepository']),
-    ...mapState(useStore, ['getNamespaces'])
+    ...mapState(useStore, ['getNamespaces']),
+    ...mapState(useStore, ['getNumberOfStatements'])
   },
   created() {
     this.apiService = new APIService()
@@ -184,23 +296,96 @@ export default defineComponent({
     this.repository = this.selectedRepository
   },
   mounted() {
-    // this.apiService.getRepositorySize(this.name).then(count => {
-    //   if (count >  50000) {
-    //
-    //   }
-    // })
-    this.loading = true
-    this.apiService.getStatements(this.name).then(data => {
-      const namespaces = this.getNamespaces
-      this.tableData = this.helperUtils.prepareStatements(data, namespaces)
-      this.wholeData = this.tableData
-      this.loading = false
-    })
+    this.lazyParams = {
+      first: 0,
+      rows: (this.$refs['dt'] as any).rows,
+      page: 0,
+      pageCount: 0
+    }
+    if (this.$route.query.resource) {
+      if (typeof this.$route.query.resource === 'string') {
+          this.query(this.$route.query.resource)
+      }
+    } else {
+      this.loadLazyData()
+    }
   },
   methods: {
-    query(queryString: string) {
-      this.tableData = this.wholeData.filter(value => value.object === queryString || value.predicate === queryString
-      || value.subject === queryString || value.context === queryString)
+    ...mapActions(useStore, ['setNumberOfStatements']),
+    async query(queryString: string) {
+      this.isQueryExecuted = true
+      const decodedQueryString = decodeURIComponent(queryString)
+      this.resource = decodedQueryString
+      let querySelect = '' as string
+      let prefixString = '';
+      if (decodedQueryString.includes("\"")) {
+        querySelect = `select ?subj ?pred ?obj where { ?subj ?pred ${decodedQueryString} }`
+      } else {
+        const namespaces = this.getNamespaces
+        for(let i = 0; i < namespaces.length; i++) {
+          if (decodedQueryString.includes(namespaces[i].prefix.value + ':')) {
+            prefixString = prefixString + `PREFIX ${namespaces[i].prefix.value}: <${namespaces[i].namespace.value}> `
+          }
+        }
+        querySelect = `${prefixString}select ?subj ?pred ?obj where {?subj ?pred ?obj . {{ ${decodedQueryString} ?pred ?obj }
+      UNION { ?subj ${decodedQueryString} ?obj } UNION { ?subj ?pred  ${decodedQueryString}}}}`
+      }
+      this.loading = true
+      this.apiService.query(this.name, encodeURIComponent(querySelect), false, null).then(data => {
+        const namespaces = this.getNamespaces
+        console.log(data)
+        this.helperUtils.prepareUnionQueryResults(data, namespaces).then(data => {
+          this.tableData = data
+        })
+        this.loading = false
+      })
+      this.$forceUpdate()
+    },
+    async loadLazyData() {
+      this.loading = true;
+      await this.apiService.getRepositorySize(this.name).then(count => {
+        this.setNumberOfStatements(parseInt(count))
+        this.apiService.query(this.name, encodeURIComponent('select *\n' +
+                'where {\n' +
+                ' { ?subj ?pred ?obj .\n' +
+                '    FILTER NOT EXISTS { GRAPH ?context { ?subj ?pred ?obj } }\n' +
+                ' }\n' +
+                '  UNION\n' +
+                '  { GRAPH ?context { ?subj ?pred ?obj } }\n' +
+                '}'),
+            false,
+            this.lazyParams).then(data => {
+          const namespaces = this.getNamespaces
+          this.helperUtils.prepareUnionQueryResults(data, namespaces).then(data => {
+            console.log(data)
+            this.totalRecords = this.getNumberOfStatements
+            this.tableData = data
+          })
+          this.loading = false
+          this.$forceUpdate()
+        })
+      })
+
+
+    },
+    onPage(event: any) {
+      this.lazyParams = event;
+      if (this.isQueryExecuted) {
+        this.query(this.resource)
+      } else {
+        this.loadLazyData();
+      }
+
+    },
+    search(queryString: string) {
+      this.isQueryExecuted = true
+      if (queryString === '') {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Resource is empty!', life: 3000})
+        return
+      }
+      this.$router.push({name: 'ExplorePage', params: {name: this.name}, query:{resource: encodeURIComponent(queryString)}})
+      this.resource = queryString
+      this.query(queryString)
     },
     async downloadFile(isFormValid: any) {
       this.submitted = true;
@@ -249,10 +434,11 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.filter {
+.container {
+  margin-top: 20px;
   padding: 30px 30px 30px 30px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-around;
   width: 1600px;
   height: 100px;
   background-color: white;
@@ -262,20 +448,16 @@ export default defineComponent({
 }
 
 .main {
-  padding: 20px 0 30px 0;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
+  height: calc(100vh - 100px);
+  overflow: auto;
+  background-color: #DCD6D6;
+  transition: 0.3s ease;
   align-content: flex-start;
   row-gap: 30px;
-  position: absolute;
-  top: 100px;
-  left: 200px;
-  width: 89%;
-  min-height: 89%;
-  height: fit-content;
-  background-color: #DCD6D6;
 }
 
 .input-container {
@@ -310,19 +492,22 @@ export default defineComponent({
   color: black;
 }
 
-.download-button {
+.press-button {
   background-color: #6583A7;
 }
 
-.download-button:enabled:hover {
+.press-button:enabled:hover {
   background-color: #0A2341;
 }
 
-.download-button:focus {
+.press-button:focus {
   box-shadow: 0 0 0 0.2rem #566F8C;
 }
 
 :deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link) {
   border-width: 0 0 0 0;
+}
+:deep(.drop-down) {
+  width: 170px;
 }
 </style>

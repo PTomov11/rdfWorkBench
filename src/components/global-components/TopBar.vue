@@ -1,5 +1,5 @@
 <template>
-  <div class="top-bar" style="margin-left: 200px">
+  <div class="top-bar" :style="{ 'left': this.getSideBarWidth }">
     <div class="container">
 
       <div class="item">
@@ -7,10 +7,10 @@
       </div>
       <div class="item">
         <div>
-          <span class="info">RDF4J Server: {{ rdfServerChanged }} </span>
+          <span class="info rdf-server">RDF4J Server: {{ rdfServerUrl }} </span>
         </div>
         <div>
-          <span class="info">Repository: {{ repositoryChanged }}</span>
+          <span class="info repository-title">Repository: {{ selectedRepository.id.value }}</span>
         </div>
       </div>
     </div>
@@ -19,49 +19,31 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {mapActions, mapState} from "pinia";
+import {mapState} from "pinia";
 import {useStore} from "@/store/store";
-import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
 
 
 export default defineComponent({
   name: "TopBar",
   props: ['title'],
-  data() {
-    return {
-      repository: {id: {type: "", value: ""}} as Repository,
-      rdfUrl: '' as string
-    }
-  },
-  mounted() {
-    this.repository = this.selectedRepository
-    this.rdfUrl = this.rdfServerUrl
-  },
   computed: {
     ...mapState(useStore, ['selectedRepository']),
     ...mapState(useStore, ['rdfServerUrl']),
-    repositoryChanged() {
-      return this.repository.id.value
-    },
-    rdfServerChanged() {
-      return this.rdfServerUrl
-    }
+    ...mapState(useStore, ['getSideBarWidth']),
   }
 })
 </script>
 
 <style scoped>
   .top-bar {
-    height: 100px; /* Full-height: remove this if you want "auto" height */
+    height: 100px;
     width: 100%;
-   /* Set the width of the sidebar */
-    position: fixed; /* Fixed Sidebar (stay in place on scroll) */
-    z-index: 1; /* Stay on top */
-    top: 0; /* Stay at the top */
+    position: sticky;
+    z-index: 1;
+    top: 0;
     left: 0;
-    background-color: #0A2341; /* Black */
-    /*overflow-x: hidden; !* Disable horizontal scroll *!*/
-
+    background-color: #0A2341;
+    transition: 0.3s ease;
   }
   .container {
     height: 100px;
@@ -78,9 +60,10 @@ export default defineComponent({
     margin: 0 0 0 20px;
     font-size: 50px;
     color: white;
-    font-weight: bold;
+    font-weight: bolder;
   }
   .info {
+    font-weight: bolder;
     font-size: 25px;
     color: white;
   }

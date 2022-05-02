@@ -14,7 +14,3 @@ export default defineComponent({
   props: ['title', 'activeSection']
 })
 </script>
-
-<style scoped>
-
-</style>
