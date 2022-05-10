@@ -1,26 +1,18 @@
-import router from "@/router/router";
 import {LazyParam} from "@/views/Explore/types/ExploreTypes";
+import useStore from "@/store/store";
 
+/*
+ Author: Patrik Tomov
+ Date: 7.5.2022
+*/
 export default class APIService {
-
-    /** Vracia všetky trojice v repozitáry
-     * @param {string} repositoryName
-     */
-    async getStatements(repositoryName: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/rdf+json'
-            }
-        }).then(response => response.json())
-    }
-
-    /** Vracia všetky trojice v danom formáte pre stiahnutie
+    /** Return all triples in specific format for download
      * @param {string} repositoryName
      * @param {string} dataFormat
      */
     async getStatementsForDownload(repositoryName: string, dataFormat: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/statements', {
             method: 'GET',
             headers: {
                 'Accept': `${dataFormat}`
@@ -28,33 +20,36 @@ export default class APIService {
         }).then(response => response.text())
     }
 
-    /** Vracia veľkosť daného repozitára
+    /** Return size of repository
      * @param {string} repositoryName
      */
     async getRepositorySize(repositoryName: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/size', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/size', {
             method: 'GET'
         }).then(response => response.text())
     }
 
-    /** Vracia počet kontextov v danom repozitáry
+    /** Return number of contexts in repository
      * @param {string} repositoryName
      */
     async getRepositoryContexts(repositoryName: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/contexts', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/contexts', {
             method: 'GET'
         }).then(response => response.text())
     }
 
-    /** Vytvorí repozitár so zadanými hodnotami
+    /** Create repository with parameters
      * @param {string} repositoryName
      * @param {string} title
      * @param {boolean} persist
      * @param {number} delay
      * @param {string} store
      */
-    async createRepository(repositoryName: string, title: string, persist: boolean, delay: number, store: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName, {
+    async createRepository(repositoryName: string, title: string, persist: boolean, delay: number, typeOfStore: string) {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName, {
             method: 'PUT',
             headers: {
                 'Content-Type' : 'text/turtle'
@@ -71,7 +66,7 @@ export default class APIService {
                       rep:repositoryImpl [
                          rep:repositoryType "openrdf:SailRepository" ;
                          sr:sailImpl [
-                        sail:sailType "openrdf:${store}" ;
+                        sail:sailType "openrdf:${typeOfStore}" ;
                         ms:persist ${persist} ;
                         ms:syncDelay ${delay}
                          ]
@@ -79,24 +74,21 @@ export default class APIService {
         });
     }
 
-    /** Zmaže daný repozitár
+    /** Delete whole repository
      * @param {string} repositoryName
      */
     async deleteRepository(repositoryName: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName, {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName, {
             method: 'DELETE',
         })
     }
 
-    /** Vytvorí repozitár so zadanými hodnotami
-     * @param {string} repositoryName
-     * @param {string} title
-     * @param {boolean} persist
-     * @param {number} delay
-     * @param {string} store
+    /** Return list of repositories
      */
     async getListOfRepositories() {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories`, {
           method: 'GET',
           headers: {
             'Accept': 'application/sparql-results+json'
@@ -105,11 +97,12 @@ export default class APIService {
             .then(data => data.results.bindings)
     }
 
-    /** Vráti všetky kontexty repozitára
+    /** Return all repository contexts in repository
      * @param {string} repositoryName
      */
     async getContextsOfRepository(repositoryName: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/contexts', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/contexts', {
             method: 'GET',
             headers: {
                 'Accept': 'application/sparql-results+json'
@@ -118,11 +111,12 @@ export default class APIService {
             .then(data => data.results.bindings)
     }
 
-    /** Vráti všetky namespacy repozitára
+    /** Return all namespaces in repository
      * @param {string} repositoryName
      */
     async getNamespacesOfRepository(repositoryName: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/namespaces', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/namespaces', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json'
@@ -131,13 +125,14 @@ export default class APIService {
             .then(data => data.results.bindings)
     }
 
-    /** Aktualizuje namespace a prefix repozitára
+    /** Update namespace and prefix of repository
      * @param {string} repositoryName
      * @param {string} prefix
      * @param {string} namespace
      */
     async updateNamespaceOfRepository(repositoryName: string, prefix: string, namespace: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/namespaces/' + prefix, {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/namespaces/' + prefix, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'text/plain'
@@ -146,21 +141,23 @@ export default class APIService {
         })
     }
 
-    /** Zmaže namespace s daným prefixom v repozitáry
+    /** Delete namespace with prefix in repository
      * @param {string} repositoryName
      * @param {string} prefix
      */
     async deleteNamespaceOfRepository(repositoryName: string, prefix: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/namespaces/' + prefix, {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/namespaces/' + prefix, {
             method: 'DELETE'
         })
     }
 
-    /** Vráti všetky typy v repozitáry
+    /** Return all types in repository
      * @param {string} repositoryName
      */
     async getTypesOfRepository(repositoryName: string) {
-        return await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?query=select%20distinct%20?type%20where%20%7B?subj%20a%20?type%7D', {
+        const store =  useStore()
+        return await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '?query=select%20distinct%20?type%20where%20%7B?subj%20a%20?type%7D', {
             method: 'GET',
             headers: {
                 'Accept': 'application/sparql-results+json',
@@ -169,7 +166,7 @@ export default class APIService {
             .then(data => data.results.bindings)
     }
 
-    /** Vykoná dotaz nad repozitárom
+    /** Execute query in repository
      * @param {string} repositoryName
      * @param {string} queryString
      * @param {boolean} isAsk
@@ -177,11 +174,12 @@ export default class APIService {
      * @param {LazyParam} lazyParams
      */
     async query(repositoryName: string, queryString: string, isAsk: boolean, lazyParams:  LazyParam) {
+        const store =  useStore()
         let apiString = ''
         if (lazyParams !== null) {
-            apiString = 'http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?query=' + queryString + `&limit=${lazyParams.rows}` + `&offset=${lazyParams.first}`
+            apiString = `${store.rdfServerUrl}/repositories/` + repositoryName + '?query=' + queryString + `&limit=${lazyParams.rows}` + `&offset=${lazyParams.first}`
         } else {
-            apiString = 'http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '?query=' + queryString
+            apiString = `${store.rdfServerUrl}/repositories/` + repositoryName + '?query=' + queryString
         }
         return await fetch(apiString, {
             method: 'GET',
@@ -198,67 +196,63 @@ export default class APIService {
             })
     }
 
-    /** Zmaže celý repozitár
+    /** Delete all statements in repository
      * @param {string} repositoryName
      */
     async deleteAllStatements(repositoryName: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements', {
-            method: 'DELETE'
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/statements', {
+            method: 'DELETE',
         })
     }
 
     /** Zmaže všetky trojice v repozitáry, ktoré vyhovujú parametrom
      * @param {string} repositoryName
-     * @param {string} parameter - hodnota subj, pred alebo obj
-     * @param {string} value - hodnota daného zdroja
-     * @param {string} context - kontext, ktoreho sa tyka zmazanie
+     * @param {string} parameter - value subj, pred or obj
+     * @param {string} value - value of resource
+     * @param {string} context - context of deleted triple
      */
     async deleteSpecifiedStatements(repositoryName: string, parameter: string, value: string, context: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?${parameter}=${value}` + `&context=${context}`, {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/statements' + `?${parameter}=${value}` + `&context=${context}`, {
             method: 'DELETE'
         })
     }
 
-    /** Pridá dáta do repozitorá prostredníctvom textového kontentu alebo prostredníctvom súboru
+    /** Add data to repository with text content or file
      * @param {string} repositoryName
-     * @param {boolean} replaceData - označuje či sa majú nahradiť alebo pridať dáta
+     * @param {boolean} replaceData - replace or add data
      * @param {string} type -
-     * @param {any} file - súbor, ktorého obsah sa pridá do repozitára alebo null ak je to textovy kontent
-     * @param {string} content - textové data pre pridanie do repozitára alebo null ak je to súbor
-     * @param {string} context - hodnota kontextu s ktorým sa pridajú data alebo hodnota null kedy sa dáta pridajú bez kontextu
+     * @param {any} file - file to be uploaded or null
+     * @param {string} content - text data to be uploaded or null
+     * @param {string} context - value of context (value or null)
      */
     async updateRepositoryStatementsWithFileOrContent(repositoryName: string, replaceData: boolean, type: string, file: any, content: string, context: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?context=${context}`, {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/statements' + `?context=${context}`, {
             method: replaceData ? 'PUT' : 'POST',
             headers: {
                 'Content-Type': type,
             },
             body: file === null ? content : file
-        }).then(response => {
-            if (!response.ok) {
-                router.push({name: 'ErrorPage'})
-            }
         })
 
     }
 
-    /** Pridá dáta do repozitorá prostredníctvom zakódováneho query stringu
+    /** Add data to repository with encoded query
      * @param {string} repositoryName
      * @param {string} type -
-     * @param {string} content - zakódovány dotaz
-     * @param {string} context - hodnota kontextu s ktorým sa pridajú data alebo hodnota null kedy sa dáta pridajú bez kontextu
+     * @param {string} content - encoded query
+     * @param {string} context - value of context (value or null)
      */
     async updateRepositoryStatementsWithQuery(repositoryName: string, type: string, content: string, context: string) {
-        await fetch('http://localhost:8081/rdf4j-server/repositories/' + repositoryName + '/statements' + `?context=${context}`, {
+        const store =  useStore()
+        await fetch(`${store.rdfServerUrl}/repositories/` + repositoryName + '/statements' + `?context=${context}`, {
             method: 'POST',
             headers: {
                 'Content-Type': type,
             },
             body: "update=" + content
-        }).then(response => {
-            if (!response.ok) {
-                console.log("network response not ok", response)
-            }
         })
     }
 }

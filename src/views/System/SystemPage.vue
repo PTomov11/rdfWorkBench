@@ -28,7 +28,10 @@ import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import {mapActions} from "pinia";
 import useStore from "@/store/store";
 
-
+/*
+    Author: Patrik Tomov
+    Date: 7.5.2022
+*/
 export default defineComponent({
   name: "SystemPage",
   components: {MenuLayout},
@@ -40,14 +43,16 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useStore, ['setRdfServerUrl']),
+    ...mapActions(useStore, ['setRepository']),
     changeServer() {
       if (this.serverUrl === '') {
         this.$toast.add({severity: 'error', summary: 'Error', detail: 'Empty server value!', life: 3000})
         return
       }
       this.setRdfServerUrl(this.serverUrl)
+      this.setRepository({id: { type:"", value: ""}, title: { type:"", value: ""}, uri: { type:"", value: ""}})
       this.serverUrl = ''
-      //todo: presemrovanie na repositories, nastavit prazdny repozitar
+      this.$router.push({name: 'RepositoriesPage', params: {name: ""}})
     }
   }
 })
@@ -65,14 +70,15 @@ export default defineComponent({
     transition: 0.3s ease;
   }
   .container {
+    margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 5px;
   }
   .sub-container {
     border-radius: 10px;
     display: flex;
-    width: 600px;
+    width: 500px;
     height: 250px;
     flex-direction: column;
     gap: 5px;
@@ -87,12 +93,5 @@ export default defineComponent({
   .sub-header {
     font-size: 30px;
     font-weight: bold;
-  }
-
-  .text-background {
-    display: inline-block;
-    background-color: #DCD6D6;
-    border-radius: 2px;
-    font-size: 20px;
   }
 </style>

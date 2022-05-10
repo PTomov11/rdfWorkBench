@@ -111,17 +111,3 @@ body {
     font-weight: bolder;
     font-size: 16px;
 }
-
-
-
-/*Table styles*/
-/*.p-datatable .p-sortable-column.p-highlight {*/
-/*    color: #6583A7;*/
-/*}*/
-/*.p-datatable .p-sortable-column:focus {*/
-/*    box-shadow: inset 0 0 0 0.15rem  #566F8C;*/
-/*    -moz-border-radius-topleft: 10px;*/
-/*}*/
-/*.p-datatable .p-sortable-column.p-highlight:hover {*/
-/*    color: #6583A7;*/
-/*}*/

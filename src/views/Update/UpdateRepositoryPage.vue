@@ -11,9 +11,6 @@
         </div>
         <div>
           <div class="filter1">
-            <Button label="UPLOAD" class="upload-button" @click="upload" :loading="loadingUpdate"></Button>
-            <Button label="CLEAR" class="clear-button" @click="clearAddSection"></Button>
-
             <div class="filter1-part1">
               <div class="input-container">
                 <div style="width: 120px">
@@ -73,7 +70,7 @@
                 <div>
                   <FileUpload :key="uploadKey" v-if="selectedUploadType === 'file' || selectedUploadType === ''" mode="basic"
                               :show-upload-button="false" :fileLimit="2" :disabled="loadingUpdate"
-                              :customUpload="true" @uploader="onUploadFile" @select="prepareForm"/>
+                              :customUpload="true" @select="prepareForm"/>
                   <FileUpload v-else mode="basic" :disabled="true"/>
                 </div>
               </div>
@@ -89,6 +86,10 @@
                             cols="50" disabled/>
                 </div>
               </div>
+            </div>
+            <div class="buttons-container">
+              <Button label="UPLOAD" class="upload-button" @click="upload" :loading="loadingUpdate"></Button>
+              <Button label="CLEAR" class="clear-button" @click="clearAddSection"></Button>
             </div>
           </div>
         </div>
@@ -117,9 +118,6 @@
         </div>
         <div>
           <div class="filter">
-            <Button icon="pi pi-question" class="p-button-rounded help-button" @click="showHelp"/>
-            <Button label="REMOVE" class="remove-button" @click="remove"></Button>
-            <Button label="CLEAR" class="clear-button" @click="clearDeleteSection"></Button>
             <div class="input-container">
               <div style="width: 120px">
                 <span class="text-header">Subject: </span>
@@ -161,7 +159,12 @@
                 <InputText class="input" type="text" v-model="contextDelete"/>
               </div>
             </div>
-            <Button label="REMOVE ALL" class="remove-all-button" @click="removeAllDialog"/>
+            <div class="buttons-container2">
+              <Button label="REMOVE ALL" class="remove-all-button" @click="removeAllDialog"/>
+              <Button label="REMOVE" class="remove-button" @click="remove"></Button>
+              <Button label="CLEAR" class="clear-button" @click="clearDeleteSection"></Button>
+              <Button icon="pi pi-question" class="p-button-rounded help-button" @click="showHelp"/>
+            </div>
           </div>
         </div>
       </div>
@@ -204,20 +207,25 @@ import * as CodeMirror from "codemirror";
 import APIService from "@/services/APIService";
 import helperUtils from "@/services/helperUtils";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
-import {mapState} from "pinia";
+import {mapActions, mapState} from "pinia";
 import {useStore} from "@/store/store";
+import {Namespace} from "@/views/Explore/types/ExploreTypes";
 
+/*
+    Author: Patrik Tomov
+    Date: 7.5.2022
+*/
 export default defineComponent({
   name: "UpdateRepositoryPage",
   components: {MenuLayout},
   data() {
     return {
-      content: '',
-      baseUri: '',
-      selectedFormat: '',
-      contextAdd: '',
-      url: '',
-      areaContent: '',
+      content: '' as string,
+      baseUri: '' as string,
+      selectedFormat: '' as string,
+      contextAdd: '' as string,
+      url: '' as string,
+      areaContent: '' as string,
       formats: [
         {name: 'TURTLE', extension: '.ttl'},
         {name: 'RDF/JSON', extension: '.rj'},
@@ -229,10 +237,10 @@ export default defineComponent({
         {name: 'Trix', extension: '.xml'},
         {name: 'TriG', extension: '.trig'},
       ],
-      subject: '',
-      predicate: '',
-      object: '',
-      contextDelete: '',
+      subject: '' as string,
+      predicate: '' as string,
+      object: '' as string,
+      contextDelete: '' as string,
       editor: null as any,
       apiService: null as unknown as APIService,
       helperUtils: null as unknown as helperUtils,
@@ -242,7 +250,7 @@ export default defineComponent({
       useBaseURIAsContext: false,
       fileToUpload: null as File | null,
       fileType: '' as string,
-      isShowHelp: false,
+      isShowHelp: false as boolean,
       uploadKey: 0 as number,
       replaceData: false as boolean,
       loadingUpdate: false as boolean,
@@ -257,11 +265,13 @@ export default defineComponent({
     this.helperUtils = new helperUtils()
   },
   mounted() {
+    //load CodeMirror editor
     this.editor = CodeMirror.fromTextArea(document.getElementById('editor') as HTMLTextAreaElement, {
       lineNumbers: true,
       mode: 'sparql',
     })
 
+    // track chnages in editor
     this.editor.on("change", (cm: any, change: any) => {
       var before = cm.getRange({line: 0, ch: 0}, change.from);
       var after = cm.getRange(change.to, {line: cm.lineCount() + 1, ch: 0});
@@ -269,6 +279,8 @@ export default defineComponent({
     })
   },
   methods: {
+    ...mapActions(useStore, ['setNamespaces']),
+    // function to execute update query from editor
     async executeQuery() {
       if (this.content.toLowerCase().includes("insert") || this.content.toLowerCase().includes("delete")) {
         await this.apiService.updateRepositoryStatementsWithQuery(
@@ -323,6 +335,10 @@ export default defineComponent({
       this.deleteAllStatementsDialog = true
     },
     remove() {
+      if (!this.helperUtils.isGoodContextValue(this.contextDelete)) {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong context value!', life: 3000})
+        return
+      }
       if (this.subject === '' && this.predicate === '' && this.object === '') {
         this.$toast.add({severity: 'error', summary: 'Error', detail: 'Missing delete value!', life: 3000})
         return
@@ -330,7 +346,7 @@ export default defineComponent({
       if (this.subject !== '') {
         const result = this.helperUtils.processSubjectValue(this.subject, this.getNamespaces)
         if (result === 'wrong') {
-          this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong value!', life: 3000})
+          this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong subject value!', life: 3000})
           return
         }
         this.apiService.deleteSpecifiedStatements(
@@ -342,7 +358,7 @@ export default defineComponent({
       } else if (this.predicate !== '') {
         const result = this.helperUtils.processPredicateValue(this.predicate, this.getNamespaces)
         if (result === 'wrong') {
-          this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong value!', life: 3000})
+          this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong predicate value!', life: 3000})
           return
         }
         this.apiService.deleteSpecifiedStatements(
@@ -352,9 +368,9 @@ export default defineComponent({
             this.contextDelete !== '' ? this.contextDelete : "null")
         this.predicate = ''
       } else {
-        const result = this.helperUtils.processObjectValue(this.predicate, this.getNamespaces)
+        const result = this.helperUtils.processObjectValue(this.object, this.getNamespaces)
         if (result === 'wrong') {
-          this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong value!', life: 3000})
+          this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong object value!', life: 3000})
           return
         }
         this.apiService.deleteSpecifiedStatements(
@@ -365,7 +381,7 @@ export default defineComponent({
         this.object = ''
       }
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Statements Deleted', life: 3000})
-
+      this.clearDeleteSection()
     },
     prepareForm(event: any) {
       if (event === null) {
@@ -391,37 +407,14 @@ export default defineComponent({
       }
 
     },
-    async onUploadFile() {
-      this.loadingUpdate = true
-      if (this.contextAdd === '') {
-        await this.apiService.updateRepositoryStatementsWithFileOrContent(
-            this.selectedRepository.id.value,
-            this.replaceData,
-            this.helperUtils.findDataFormatFromExtension(this.fileType),
-            this.fileToUpload,
-            '',
-            'null')
-      } else {
-        await this.apiService.updateRepositoryStatementsWithFileOrContent(
-            this.selectedRepository.id.value,
-            this.replaceData,
-            this.helperUtils.findDataFormatFromExtension(this.fileType),
-            this.fileToUpload,
-            '',
-            encodeURIComponent(this.contextAdd))
-      }
-      this.loadingUpdate = false
-      this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Statements Added', life: 3000})
-      this.baseUri = ''
-      this.contextAdd = ''
-      this.uploadKey = this.uploadKey + 1
-    },
+    // function for upload content from url, file or content itself
     async upload() {
       if (this.url === '' && this.areaContent === '' && this.fileToUpload === null) {
         this.$toast.add({severity: 'error', summary: 'Error', detail: 'Missing import value!', life: 3000})
         return
       }
       this.loadingUpdate = true
+      //file upload
       if (this.fileToUpload !== null) {
         await this.apiService.updateRepositoryStatementsWithFileOrContent(
             this.selectedRepository.id.value,
@@ -430,6 +423,7 @@ export default defineComponent({
             this.fileToUpload,
             '',
             this.contextAdd === '' ? 'null' : encodeURIComponent(this.contextAdd))
+        // url content upload
       } else if (this.url !== '') {
         if (!this.url.match("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)")) {
           this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong URL format!', life: 5000})
@@ -444,6 +438,7 @@ export default defineComponent({
             content,
             this.contextAdd === '' ? 'null' : encodeURIComponent(this.contextAdd))
       } else {
+        // content upload
         if (this.selectedFormat === '') {
           this.$toast.add({severity: 'error', summary: 'Error', detail: 'Missing format!', life: 3000})
           this.loadingUpdate = false
@@ -460,6 +455,9 @@ export default defineComponent({
       this.loadingUpdate = false
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Statements Added', life: 3000})
       this.clearAddSection()
+      await this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
+        this.setNamespaces(data)
+      })
     },
     showHelp() {
       this.isShowHelp = true
@@ -487,7 +485,6 @@ export default defineComponent({
       toRaw(this.editor).setValue('')
     }
   }
-
 })
 </script>
 
@@ -505,8 +502,6 @@ export default defineComponent({
   align-content: flex-start;
   gap: 40px;
   flex-direction: row;
-}
-.editor {
 }
 .ciara {
   width: 200px;
@@ -603,4 +598,66 @@ h1 {
   bottom: 30px;
   left: 30px;
 }
+:deep(.p-dropdown:not(.p-disabled)) {
+  border-color: black;
+}
+
+@media only screen and (max-width: 900px) {
+  .filter1 {
+    width: 400px;
+  }
+  .input {
+    width: 200px;
+  }
+  .upload-button {
+    position: relative;
+    top: 0;
+    right: 0;
+  }
+
+  .clear-button {
+    position: relative;
+    top: 0;
+    right: 0;
+  }
+  .buttons-container {
+    display: flex;
+    justify-content: space-between;
+  }
+  :deep(.p-inputtextarea) {
+    width: 200px;
+  }
+  :deep(.CodeMirror) {
+    height: 300px;
+    width: 400px;
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .buttons-content {
+    justify-content: center;
+  }
+  .filter {
+    width: 400px;
+    margin-bottom: 20px;
+
+  }
+  .remove-all-button {
+    position: relative;
+    bottom: 0;
+    left: 0;
+  }
+  .remove-button {
+    position: relative;
+    top: 0;
+    right: 0;
+  }
+  .buttons-container2 {
+    display: flex;
+  }
+  .help-button {
+    bottom: 10px;
+  }
+}
+
 </style>

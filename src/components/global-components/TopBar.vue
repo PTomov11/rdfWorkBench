@@ -22,7 +22,10 @@ import {defineComponent} from "vue";
 import {mapState} from "pinia";
 import {useStore} from "@/store/store";
 
-
+/*
+ Author: Patrik Tomov
+ Date: 7.5.2022
+*/
 export default defineComponent({
   name: "TopBar",
   props: ['title'],
@@ -35,36 +38,55 @@ export default defineComponent({
 </script>
 
 <style scoped>
-  .top-bar {
-    height: 100px;
-    width: 100%;
-    position: sticky;
-    z-index: 1;
-    top: 0;
-    left: 0;
-    background-color: #0A2341;
-    transition: 0.3s ease;
-  }
-  .container {
-    height: 100px;
-    display: flex;
-    align-items: center;
-  }
-  .item{
-    display: flex;
-    flex-direction: column;
-    width: 50%;
-    gap: 15px;
-  }
+.top-bar {
+  height: 100px;
+  width: 100%;
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #0A2341;
+  transition: 0.3s ease;
+}
+.container {
+  height: 100px;
+  display: flex;
+  align-items: center;
+}
+.item{
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  gap: 15px;
+}
+.title {
+  margin: 0 0 0 20px;
+  font-size: 50px;
+  color: white;
+  font-weight: bolder;
+}
+.info {
+  font-weight: bolder;
+  font-size: 25px;
+  color: white;
+}
+
+@media only screen and (min-width: 700px) and (max-width: 1370px) {
   .title {
-    margin: 0 0 0 20px;
-    font-size: 50px;
-    color: white;
-    font-weight: bolder;
+    font-size: 35px;
   }
   .info {
-    font-weight: bolder;
-    font-size: 25px;
-    color: white;
+    font-size: 17px;
   }
+}
+
+@media only screen and (max-width: 700px) {
+  .title {
+    font-size: 35px;
+  }
+  .info {
+    font-size: 15px;
+  }
+}
+
 </style>

@@ -14,6 +14,10 @@ import {defineComponent} from "vue";
 import useStore from "../../store/store";
 import {mapState} from "pinia";
 
+/*
+ Author: Patrik Tomov
+ Date: 7.5.2022
+*/
 export default defineComponent({
   name: "SideBarLink",
   props: {

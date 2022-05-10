@@ -17,7 +17,7 @@
             </div>
             <div>
               <div>
-                <span>{{ repository.id.value }}</span>
+                <span>{{ getSelectedRepository.id.value }}</span>
               </div>
             </div>
           </div>
@@ -27,7 +27,7 @@
             </div>
             <div>
               <div>
-                <span>{{ repository.title.value }}</span>
+                <span>{{ getSelectedRepository.title.value }}</span>
               </div>
             </div>
           </div>
@@ -37,7 +37,11 @@
             </div>
             <div>
               <div>
-                <span>{{ repository.uri.value }}</span>
+                <span v-if="this.getSelectedRepository.uri.value.length > 54"
+                      v-tooltip.right="{ value: this.getSelectedRepository.uri.value }">
+                  {{ truncate(getSelectedRepository.uri.value, 54, '...') }}
+                </span>
+                <span v-else>{{ getSelectedRepository.uri.value }}</span>
               </div>
             </div>
           </div>
@@ -47,7 +51,7 @@
             </div>
             <div>
               <div>
-                <span>{{ rdfServer }}</span>
+                <span>{{ getRdfServerUrl }}</span>
               </div>
             </div>
           </div>
@@ -89,20 +93,20 @@
         <TabMenu :model="items" @tab-change="changeTab"/>
       </div>
       <div v-if="activeTab === 0">
-        <DataTable :value="types" stripedRows responsiveLayout="scroll" :scrollable="true" scrollHeight="360px">
+        <DataTable :value="types" stripedRows responsiveLayout="scroll" :scrollable="true" scrollHeight="370px">
           <Column field="type.value" header="Type" :sortable="true"></Column>
         </DataTable>
       </div>
       <div v-if="activeTab === 1">
         <DataTable :rows="10" :value="contexts" stripedRows responsiveLayout="scroll" :scrollable="true"
-                   scrollHeight="360px">
+                   scrollHeight="370px">
           <Column field="contextID.value" header="Context" :sortable="true"></Column>
         </DataTable>
       </div>
       <div v-if="activeTab === 2" class="namespaces-tab">
 
         <DataTable :value="namespaces" data-key="prefix.value" stripedRows responsiveLayout="scroll" :scrollable="true"
-                   scrollHeight="360px" style="flex-grow: 1;">
+                   scrollHeight="370px" style="flex-grow: 1;">
           <Column field="prefix.value" header="Prefix" :sortable="true" style="max-width:200px"></Column>
           <Column field="namespace.value" header="Namespace"></Column>
         </DataTable>
@@ -110,7 +114,6 @@
         <div>
           <form @submit.prevent="updateNamespace(!v$.$invalid)" class="p-fluid filter">
             <span style="font-size: 30px;font-weight: bolder">Prefix</span>
-            <Button label="CLEAR" class="clear-button" @click="clearSection"/>
             <InputText v-model="v$.prefix.$model"
                        v-on:input="resetForm"
                        :class="{'p-invalid':v$.prefix.$invalid && submitted || isPrefixMissing}"
@@ -132,14 +135,13 @@
             <div style="display:flex;justify-content: space-between">
               <Button label="UPDATE" type="submit" style="width: 100px"/>
               <Button label="DELETE" @click="deleteNamespace(!v$.prefix.$invalid)" style="width: 100px"/>
+              <Button label="CLEAR" @click="clearSection" style="width: 100px"/>
             </div>
           </form>
         </div>
       </div>
     </div>
     <router-view/>
-
-
   </div>
 </template>
 
@@ -147,7 +149,7 @@
 import {defineComponent} from "vue";
 import {Context, Namespace, Type} from "@/views/Explore/types/ExploreTypes";
 import APIService from "@/services/APIService";
-import {Repository, SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
+import {SelectedItem} from "@/views/Repositories/types/RepositoriesTypes";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import {useVuelidate} from "@vuelidate/core";
 import {required} from "@vuelidate/validators";
@@ -178,12 +180,6 @@ export default defineComponent({
       apiService: null as unknown as APIService,
       submitted: false,
       isPrefixMissing: false,
-      repository: {
-        id: {type: "", value: ""},
-        title: {type: "", value: ""},
-        uri: {type: "", value: ""}
-      } as Repository,
-      rdfServer: '',
     }
   },
   validations() {
@@ -197,14 +193,10 @@ export default defineComponent({
     }
   },
   computed: {
-    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getSelectedRepository']),
     ...mapState(useStore, ['getRdfServerUrl']),
     ...mapState(useStore, ['getNumberOfStatements']),
     ...mapState(useStore, ['getNumberOfContexts']),
-  },
-  mounted() {
-    this.repository = this.selectedRepository
-    this.rdfServer = this.getRdfServerUrl
   },
   created() {
     this.apiService = new APIService()
@@ -214,11 +206,11 @@ export default defineComponent({
     async changeTab(event: any) {
       this.activeTab = event.index;
       if (event.index === 0) {
-        this.apiService.getTypesOfRepository(this.selectedRepository.id.value).then((data: Type[]) => this.types = data)
+        this.apiService.getTypesOfRepository(this.getSelectedRepository.id.value).then((data: Type[]) => this.types = data)
       } else if (event.index === 1) {
-        this.apiService.getContextsOfRepository(this.selectedRepository.id.value).then((data: Context[]) => this.contexts = data)
+        this.apiService.getContextsOfRepository(this.getSelectedRepository.id.value).then((data: Context[]) => this.contexts = data)
       } else {
-        await this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
+        await this.apiService.getNamespacesOfRepository(this.getSelectedRepository.id.value).then((data: Namespace[]) => {
           this.setNamespaces(data)
           this.namespaces = data
           this.prefixes = []
@@ -244,8 +236,8 @@ export default defineComponent({
       if (!isFormValid) {
         return
       }
-      await this.apiService.updateNamespaceOfRepository(this.selectedRepository.id.value, this.prefix, this.namespace)
-      this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
+      await this.apiService.updateNamespaceOfRepository(this.getSelectedRepository.id.value, this.prefix, this.namespace)
+      this.apiService.getNamespacesOfRepository(this.getSelectedRepository.id.value).then((data: Namespace[]) => {
         this.namespaces = data
         this.prefixes = []
         for (let namespace in this.namespaces) {
@@ -266,7 +258,7 @@ export default defineComponent({
         this.isPrefixMissing = true
         return
       }
-      this.apiService.deleteNamespaceOfRepository(this.selectedRepository.id.value, this.prefix)
+      this.apiService.deleteNamespaceOfRepository(this.getSelectedRepository.id.value, this.prefix)
       this.namespaces = this.namespaces.filter(val => val.prefix.value !== this.selectedNamespace.prefix.value)
       this.prefixes = this.prefixes.filter(val => val.name !== this.selectedNamespace.prefix.value)
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Namespace Deleted', life: 3000})
@@ -289,7 +281,14 @@ export default defineComponent({
       this.prefix = ''
       this.selectedPrefix = {name: ''}
       this.namespace = ''
-    }
+    },
+    truncate(text: string, length: number, suffix: string) {
+      if (text.length > length) {
+        return text.substring(0, length) + suffix;
+      } else {
+        return text;
+      }
+    },
   }
 })
 </script>
@@ -310,13 +309,13 @@ export default defineComponent({
 }
 
 .summary {
-  padding-left: 10px;
+  padding: 0 10px 0 10px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 5px;
-  width: 700px;
-  height: 170px;
+  min-width: 500px;
+  min-height: 170px;
   background-color: white;
   border-radius: 10px;
 }
@@ -340,12 +339,14 @@ export default defineComponent({
 .summary-container {
   display: flex;
   justify-content: space-around;
+  gap: 5px;
+  align-items: center;
 }
 
 .content-container {
   display: flex;
   flex-direction: column;
-  padding: 20px 20px 20px 20px;
+  padding: 20px 20px 0 20px;
   row-gap: 10px;
 }
 
@@ -355,18 +356,20 @@ export default defineComponent({
   flex-direction: column;
   justify-content: space-evenly;
   gap: 10px;
-  width: 500px;
-  height: 360px;
+  min-width: 400px;
+  height: 370px;
   background-color: white;
   border-radius: 10px;
+}
 
+:deep(.p-dropdown:not(.p-disabled)) {
+  border-color: black;
 }
 
 :deep(.p-tabmenu-nav) {
   justify-content: space-between;
   background: #DCD6D6;
   border-bottom-width: 4px;
-
 }
 
 :deep(.p-tabmenuitem) {
@@ -378,7 +381,6 @@ export default defineComponent({
   border-width: 0 0 4px 0;
   border-color: #DA5800;
   color: #6c757d;
-
 }
 
 :deep(.p-tabmenu .p-tabmenu-nav .p-menuitem-link) {
@@ -408,9 +410,19 @@ export default defineComponent({
   align-items: center;
   gap: 20px;
 }
-.clear-button {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+/*.clear-button {*/
+/*  position: relative;*/
+/*  top: 10px;*/
+/*  right: 10px;*/
+/*}*/
+@media only screen and (max-width: 1000px) {
+  .namespaces-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .summary-container {
+    flex-direction: column;
+  }
 }
 </style>

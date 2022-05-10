@@ -6,13 +6,13 @@
     <div class="main" :style="{ 'left': this.getSideBarWidth }">
       <div class="item">
         <DataTable :value="repositories" data-key="id.value" :scrollable="true" scrollHeight="500px" :loading="loading">
-          <Column field="id.value" header="Name" style="min-width:300px" :sortable="true"></Column>
-          <Column field="title.value" header="Description" style="min-width:300px" :sortable="true"></Column>
-          <Column field="uri.value" header="Location" style="min-width:700px" :sortable="true"></Column>
-          <Column>
+          <Column field="id.value" header="Name"  :sortable="true"></Column>
+          <Column field="title.value" header="Description"  :sortable="true"></Column>
+          <Column field="uri.value" header="Location" style="min-width:500px" :sortable="true"></Column>
+          <Column style="max-width: 150px">
             <template #body="slotProps">
               <Button icon="pi pi-check" class="p-button-rounded"
-                      :disabled="this.selectedRepository.id.value === slotProps.data.id.value"
+                      :disabled="this.getSelectedRepository.id.value === slotProps.data.id.value"
                       @click="selectRepository(slotProps.data)"/>
               <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" style="margin-left: 20px"
                       @click="confirmDeleteRepository(slotProps.data)"/>
@@ -112,6 +112,10 @@ import {mapActions, mapState} from "pinia";
 import useStore from "@/store/store";
 import {Namespace} from "@/views/Explore/types/ExploreTypes";
 
+/*
+    Author: Patrik Tomov
+    Date: 7.5.2022
+*/
 export default defineComponent({
   name: "RepositoriesPage",
   components: {MenuLayout},
@@ -166,7 +170,7 @@ export default defineComponent({
     })
   },
   computed: {
-    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getSelectedRepository']),
     ...mapState(useStore, ['getSideBarWidth']),
   },
 
@@ -181,7 +185,7 @@ export default defineComponent({
     },
     deleteRepository() {
       this.apiService.deleteRepository(this.repositoryToDelete.id.value)
-      if (this.repositoryToDelete.id.value === this.selectedRepository.id.value) {
+      if (this.repositoryToDelete.id.value === this.getSelectedRepository.id.value) {
         this.setRepository({id: { type:"", value: ""}, title: { type:"", value: ""}, uri: { type:"", value: ""}})
       }
       this.repositories = this.repositories.filter(val => val.id.value !== this.repositoryToDelete.id.value)
@@ -191,13 +195,13 @@ export default defineComponent({
     },
     async selectRepository(repository: Repository) {
       this.setRepository(repository)
-      this.apiService.getRepositorySize(this.selectedRepository.id.value).then(count => {
+      this.apiService.getRepositorySize(this.getSelectedRepository.id.value).then(count => {
         this.setNumberOfStatements(parseInt(count))
       })
-      this.apiService.getRepositoryContexts(this.selectedRepository.id.value).then(count => {
+      this.apiService.getRepositoryContexts(this.getSelectedRepository.id.value).then(count => {
         this.setNumberOfContexts(count.split(/\r\n/).length - 2)
       })
-      await this.apiService.getNamespacesOfRepository(this.selectedRepository.id.value).then((data: Namespace[]) => {
+      await this.apiService.getNamespacesOfRepository(this.getSelectedRepository.id.value).then((data: Namespace[]) => {
         this.setNamespaces(data)
       })
       this.$toast.add({
@@ -206,11 +210,12 @@ export default defineComponent({
         detail: 'Name: ' + repository.id.value,
         life: 3000
       })
-      await this.$router.push({name: 'AboutRepositoryPage', params: {name: this.selectedRepository.id.value}})
+      await this.$router.push({name: 'AboutRepositoryPage', params: {name: this.getSelectedRepository.id.value}})
     },
     openModal() {
       this.displayModal = true
     },
+    // check inputs and create repository if ok
     async handleSubmit(isFormValid: any) {
       this.submitted = true;
       if (!isFormValid) {
@@ -254,7 +259,11 @@ export default defineComponent({
 
 .create-button {
   height: 50px;
-  width: 1350px;
+  width: 1300px;
+}
+
+:deep(.p-datatable) {
+  width: 1300px;
 }
 
 .button-container {
@@ -298,22 +307,21 @@ span {
   background-color: #0A2341;
 }
 
-@media only screen and (max-width: 1200px) {
-  .main {
-    width: fit-content;
-    height: 100vh;
+@media only screen and (min-width: 1000px) and (max-width: 1550px) {
+  :deep(.p-datatable) {
+    width: 1000px;
   }
-  .wrapper {
-    height: max-content;
+  .create-button {
+    width: 1000px;
   }
-  .item {
-    padding: 0 50px 0 50px;
+}
+
+@media only screen and (max-width: 1000px) {
+  :deep(.p-datatable) {
+    width: 700px;
   }
-  .info {
-    font-size: 20px;
-  }
-  .content-wrapper {
-    height: max-content;
+  .create-button {
+    width: 700px;
   }
 }
 </style>

@@ -6,37 +6,34 @@
     <div>
       <Button class="back-button" label="BACK TO QUERY" @click="redirectBack"></Button>
     </div>
-    <div v-if="this.queryResults.length">
-      <DataTable v-if="!isAskQueryExecuted" :value="queryResults" :paginator="true" :alwaysShowPaginator="false" :rows="10"
-                 :loading="loading"
-                 paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-                 :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
-                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
-        <Column v-for="(col,index) of columns" :header="col.header" :key="col.field">
-          <template #body="slotProps">
-            <router-link v-if="needTruncate(slotProps.data[index])" @click="queryResource(slotProps.data[index])"
-                         :to="{name: 'ExplorePage',
-                       params: {name:this.name},
-                       query:{resource: encodeURIComponent(slotProps.data[index])}}"
-                         v-tooltip.right="{ value: replaceChar(slotProps.data[index]) }">
-              {{ truncate(slotProps.data[index], this.returnWidth(), '...') }}
-            </router-link>
-            <router-link v-else @click="queryResource(slotProps.data[index])" :to="{name: 'ExplorePage',
-                       params: {name:this.name},
-                       query:{resource: encodeURIComponent(slotProps.data[index])}}">
-              {{ slotProps.data[index] }}
-            </router-link>
-          </template>
-        </Column>
-        <template #paginatorstart>
-          <Button type="button" icon="pi pi-refresh" class="p-button-text"/>
+    <DataTable v-if="!isAskQueryExecuted" :value="queryResults" :paginator="true" :alwaysShowPaginator="false" :rows="10"
+               :loading="loading" responsiveLayout="stack" breakpoint="1000px"
+               paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+               :rowsPerPageOptions="[10,20,50]"
+               currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
+      <Column v-for="(col,index) of columns" :header="col.header" :key="col.field">
+        <template #body="slotProps">
+          <router-link v-if="needTruncate(slotProps.data[index])" @click="queryResource(slotProps.data[index])"
+                       :to="{name: 'ExplorePage',
+                     params: {name:this.name},
+                     query:{resource: encodeURIComponent(slotProps.data[index])}}"
+                       v-tooltip.right="{ value: replaceChar(slotProps.data[index]) }">
+            {{ truncate(slotProps.data[index], this.returnWidth(), '...') }}
+          </router-link>
+          <router-link v-else @click="queryResource(slotProps.data[index])" :to="{name: 'ExplorePage',
+                     params: {name:this.name},
+                     query:{resource: encodeURIComponent(slotProps.data[index])}}">
+            {{ slotProps.data[index] }}
+          </router-link>
         </template>
-        <template #paginatorend>
-          <Button type="button" icon="pi pi-cloud" class="p-button-text"/>
-        </template>
-      </DataTable>
-    </div>
-
+      </Column>
+      <template #paginatorstart>
+        <Button type="button" icon="pi pi-refresh" class="p-button-text"/>
+      </template>
+      <template #paginatorend>
+        <Button type="button" icon="pi pi-cloud" class="p-button-text"/>
+      </template>
+    </DataTable>
   </div>
 </template>
 
@@ -52,6 +49,10 @@ import {mapActions, mapState} from "pinia";
 import useStore from "@/store/store";
 import {Column} from "@/views/Explore/types/ExploreTypes";
 
+/*
+    Author: Patrik Tomov
+    Date: 7.5.2022
+*/
 export default defineComponent({
   name: "QueryResultPage",
   props:['name'],
@@ -65,6 +66,19 @@ export default defineComponent({
       isAskQueryExecuted: false as boolean,
       askQueryResult: '' as string,
       loading: false,
+    }
+  },
+  created() {
+    this.apiService = new APIService()
+    this.helperUtils = new helperUtils()
+  },
+  mounted() {
+    this.loading = true
+    if (typeof this.$route.params.isAskQuery === "string") {
+      this.isAskQueryExecuted = this.$route.params.isAskQuery === 'true';
+    }
+    if (typeof this.$route.query.resource === "string") {
+      this.query(this.$route.query.resource, this.isAskQueryExecuted)
     }
   },
   computed: {
@@ -83,19 +97,6 @@ export default defineComponent({
       return ''
     }
   },
-  // watch: {
-  //   $route(from, to ) {
-  //     const encodedQueryString = this.$route.query.resource
-  //     if (typeof encodedQueryString === 'string') {
-  //       if (encodedQueryString.includes("ASK")) {
-  //
-  //         this.query(encodedQueryString, true)
-  //       } else {
-  //         this.query(encodedQueryString, false)
-  //       }
-  //     }
-  //   }
-  // },
   methods: {
     ...mapActions(useStore, ['setQueryResults']),
     truncate(text: string, length: number, suffix: any) {
@@ -109,7 +110,6 @@ export default defineComponent({
       return value.replace("<", "&lt;")
     },
     async query(queryString: string, isAskQuery: boolean) {
-      this.loading = true
       await this.apiService.query(this.name, queryString, isAskQuery, null).then(data => {
         this.columns = this.helperUtils.prepareColumnsOfQuery(data)
         if (this.isAskQueryExecuted && isAskQuery) {
@@ -128,15 +128,20 @@ export default defineComponent({
       this.$router.push({name: 'QueryPage', params: {name: this.name}})
     },
     returnWidth(): number {
-      return 1600 / this.columns.length - 50
+      if (this.columns.length <= 3) {
+        return 57
+      } else if (this.columns.length > 3 && this.columns.length <= 6) {
+        return 20
+      }
+      return 100
     },
     needTruncate(value: string) {
-      const acceptWidth = 1600 / this.columns.length
-      if (value.length > acceptWidth) {
-        return true
-      } else{
-        return false
+      if (this.columns.length <= 3) {
+        return value.length > 57
+      } else if (this.columns.length > 3 && this.columns.length <= 6) {
+         return  value.length > 20
       }
+      return false
     },
     isQueryResult() {
       return this.queryResults.length <= 0;
@@ -144,23 +149,7 @@ export default defineComponent({
     queryResource(queryString: string) {
       this.$router.push({name: 'ExplorePage', params: {name: this.name}, query:{resource: encodeURIComponent(queryString)}})
     }
-  },
-  created() {
-    this.apiService = new APIService()
-    this.helperUtils = new helperUtils()
-  },
-  mounted() {
-    if (typeof this.$route.params.isAskQuery === "string") {
-      if (this.$route.params.isAskQuery === 'true') {
-        this.isAskQueryExecuted = true
-      } else {
-        this.isAskQueryExecuted = false
-      }
-    }
-    if (typeof this.$route.query.resource === "string") {
-      this.query(this.$route.query.resource, this.isAskQueryExecuted)
-    }
-  },
+  }
 })
 </script>
 
@@ -188,11 +177,6 @@ export default defineComponent({
   height: 80px;
   position: absolute;
   top: 120px;
-  right: 50px;
-}
-.only-button {
-  position: absolute;
-  top: 110px;
   right: 50px;
 }
 :deep(.pi) {

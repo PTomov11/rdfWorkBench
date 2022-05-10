@@ -9,6 +9,10 @@ import QueryPage from "@/views/Explore/QueryPage.vue";
 import QueryResultPage from "@/views/Explore/QueryResultPage.vue";
 import PageNotFound from "@/views/PageNotFound.vue";
 
+/*
+ Author: Patrik Tomov
+ Date: 7.5.2022
+*/
 const routes = [
     {
         path: '/',
@@ -46,7 +50,7 @@ const routes = [
         props: true,
     },
     {
-        path: '/update',
+        path: '/repositories/:name/update',
         name: 'UpdateRepositoryPage',
         component: UpdateRepositoryPage
     },

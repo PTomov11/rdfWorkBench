@@ -11,7 +11,7 @@
           <span style="font-weight: bolder;font-size: 20px">Resource: </span>
         </div>
         <div>
-          <InputText class="input" type="text" v-model="resource" style="width: 400px"/>
+          <InputText v-on:keyup.enter="enterPressed(resource)" class="input" type="text" v-model="resource" style="width: 400px"/>
         </div>
         <div>
           <Button class="press-button" label="SEARCH" @click="search(resource)"></Button>
@@ -29,88 +29,90 @@
         <small v-if="(v$.selectedFormat.$invalid && submitted) || v$.selectedFormat.$pending.$response" class="p-error">
           {{ v$.selectedFormat.required.$message.replace('Value', 'Format') }}</small>
         <div>
-          <Button class="press-button" type="submit" label="DOWNLOAD"></Button>
+          <Button :loading="loadingDownload" class="press-button" type="submit" label="DOWNLOAD"></Button>
         </div>
       </form>
     </div>
 
     <DataTable v-if="!isQueryExecuted" :value="tableData" :lazy="true" :paginator="true" :rows="10" :loading="loading"
-               @page="onPage($event)" ref="dt" :totalRecords="totalRecords"
+               @page="onPage($event)" ref="dt" :totalRecords="totalRecords"  responsiveLayout="stack" breakpoint="1000px"
                paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-               :rowsPerPageOptions="[10,20,50]" responsiveLayout="scroll"
+               :rowsPerPageOptions="[10,20,50]"
                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}">
       <Column header="Subject">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.subject.length > 38" @click="query(slotProps.data.subject)"
                        :to="{name: 'ExplorePage',
-                     params: {name:this.repository.id.value},
+                     params: {name:this.getSelectedRepository.id.value},
                      query:{resource: encodeURIComponent(slotProps.data.subject)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.subject) }">
             {{ truncate(slotProps.data.subject, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.subject)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                       query:{resource: encodeURIComponent(slotProps.data.subject)}}">
             {{ slotProps.data.subject }}
           </router-link>
           <Button v-if="slotProps.data.subject" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.subject)"
-                  style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
+                  class="copy-button"/>
         </template>
       </Column>
       <Column header="Predicate">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.predicate.length > 38" @click="query(slotProps.data.predicate)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                        query:{resource: encodeURIComponent(slotProps.data.predicate)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.predicate) }">
             {{ truncate(slotProps.data.predicate, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.predicate)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                        query:{resource: encodeURIComponent(slotProps.data.predicate)}}">
             {{ slotProps.data.predicate }}
           </router-link>
           <Button v-if="slotProps.data.predicate" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.predicate)"
-                  style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
+                  class="copy-button"/>
         </template>
       </Column>
       <Column header="Object">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.object.length > 38" @click="query(slotProps.data.object)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                        query:{resource: encodeURIComponent(slotProps.data.object)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.object) }">
             {{ truncate(slotProps.data.object, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.object)"
                        :to="{name: 'ExplorePage',
-                     params: {name:this.repository.id.value},
+                     params: {name:this.getSelectedRepository.id.value},
                      query:{resource: encodeURIComponent(slotProps.data.object)}}">
             {{ slotProps.data.object }}
           </router-link>
           <Button v-if="slotProps.data.object" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.object)"
-                  style="width: 20px; height: 20px; margin-left: 2px;position: absolute"/>
+                  class="copy-button"/>
         </template>
       </Column>
       <Column header="Context">
         <template #body="slotProps">
           <router-link v-if="slotProps.data.context.length > 38" @click="query(slotProps.data.context)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                       query:{resource: encodeURIComponent(slotProps.data.context)}}"
                        v-tooltip.left="{ value: slotProps.data.context }">
             {{ truncate(slotProps.data.context, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.context)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                       query:{resource: encodeURIComponent(slotProps.data.context)}}">
             {{ slotProps.data.context }}
           </router-link>
+          <Button v-if="slotProps.data.context" icon="pi pi-copy" @click="copyToClipboard(slotProps.data.context)"
+                  class="copy-button"/>
         </template>
       </Column>
       <template #paginatorstart>
@@ -131,14 +133,14 @@
         <template #body="slotProps">
           <router-link v-if="slotProps.data.subject.length > 38" @click="query(slotProps.data.subject)"
                        :to="{name: 'ExplorePage',
-                     params: {name:this.repository.id.value},
+                     params: {name:this.getSelectedRepository.id.value},
                      query:{resource: encodeURIComponent(slotProps.data.subject)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.subject) }">
             {{ truncate(slotProps.data.subject, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.subject)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                       query:{resource: encodeURIComponent(slotProps.data.subject)}}">
             {{ slotProps.data.subject }}
           </router-link>
@@ -150,14 +152,14 @@
         <template #body="slotProps">
           <router-link v-if="slotProps.data.predicate.length > 38" @click="query(slotProps.data.predicate)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                        query:{resource: encodeURIComponent(slotProps.data.predicate)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.predicate) }">
             {{ truncate(slotProps.data.predicate, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.predicate)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                        query:{resource: encodeURIComponent(slotProps.data.predicate)}}">
             {{ slotProps.data.predicate }}
           </router-link>
@@ -169,14 +171,14 @@
         <template #body="slotProps">
           <router-link v-if="slotProps.data.object.length > 38" @click="query(slotProps.data.object)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                        query:{resource: encodeURIComponent(slotProps.data.object)}}"
                        v-tooltip.right="{ value: replaceChar(slotProps.data.object) }">
             {{ truncate(slotProps.data.object, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.object)"
                        :to="{name: 'ExplorePage',
-                     params: {name:this.repository.id.value},
+                     params: {name:this.getSelectedRepository.id.value},
                      query:{resource: encodeURIComponent(slotProps.data.object)}}">
             {{ slotProps.data.object }}
           </router-link>
@@ -188,14 +190,14 @@
         <template #body="slotProps">
           <router-link v-if="slotProps.data.context.length > 38" @click="query(slotProps.data.context)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                       query:{resource: encodeURIComponent(slotProps.data.context)}}"
                        v-tooltip.left="{ value: slotProps.data.context }">
             {{ truncate(slotProps.data.context, 38, '...') }}
           </router-link>
           <router-link v-else @click="query(slotProps.data.context)"
                        :to="{name: 'ExplorePage',
-                      params: {name:this.repository.id.value},
+                      params: {name:this.getSelectedRepository.id.value},
                       query:{resource: encodeURIComponent(slotProps.data.context)}}">
             {{ slotProps.data.context }}
           </router-link>
@@ -215,15 +217,18 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import APIService from "@/services/APIService";
-import {LazyParam, Namespace, Statement} from "@/views/Explore/types/ExploreTypes";
+import {LazyParam, Statement} from "@/views/Explore/types/ExploreTypes";
 import helperUtils from "@/services/helperUtils";
 import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import { useVuelidate } from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import {mapActions, mapState} from "pinia";
 import { useStore } from "@/store/store";
-import { Repository } from "@/views/Repositories/types/RepositoriesTypes";
 
+/*
+    Author: Patrik Tomov
+    Date: 7.5.2022
+*/
 export default defineComponent({
   name: "ExplorePage",
   props: ['name'],
@@ -249,13 +254,10 @@ export default defineComponent({
         {name: 'Trix', extension: '.xml'},
         {name: 'TriG', extension: '.trig'},
       ],
-      downloadData: null as any,
+      loadingDownload: false as boolean,
       submitted: false,
-      repository: {} as Repository,
-      isFromQueryRedirect: false as boolean,
       lazyParams: {} as LazyParam,
       isQueryExecuted: false as boolean,
-      rerender: 0 as number,
     }
   },
   validations() {
@@ -266,7 +268,7 @@ export default defineComponent({
     }
   },
   watch: {
-    $route(to, from ) {
+    $route() {
       this.isQueryExecuted = false
       this.$forceUpdate
       const encodedQueryString = this.$route.query.resource
@@ -286,14 +288,13 @@ export default defineComponent({
     }
   },
   computed: {
-    ...mapState(useStore, ['selectedRepository']),
+    ...mapState(useStore, ['getSelectedRepository']),
     ...mapState(useStore, ['getNamespaces']),
     ...mapState(useStore, ['getNumberOfStatements'])
   },
   created() {
     this.apiService = new APIService()
     this.helperUtils = new helperUtils()
-    this.repository = this.selectedRepository
   },
   mounted() {
     this.lazyParams = {
@@ -319,7 +320,18 @@ export default defineComponent({
       let querySelect = '' as string
       let prefixString = '';
       if (decodedQueryString.includes("\"")) {
-        querySelect = `select ?subj ?pred ?obj where { ?subj ?pred ${decodedQueryString} }`
+        querySelect = `SELECT distinct ?subj ?pred ?obj ?context
+                        WHERE {
+                            { ?subj ?pred ?obj .
+                             FILTER NOT EXISTS { GRAPH ?context { ?subj ?pred ?obj } }
+                            { VALUES ?obj { ${decodedQueryString} } ?subj ?pred ?obj }
+                        }
+                        UNION
+                        {
+                            GRAPH ?context {
+                            values ?obj { ${decodedQueryString} }
+                            ?subj ?pred ?obj
+                        }}}`
       } else {
         const namespaces = this.getNamespaces
         for(let i = 0; i < namespaces.length; i++) {
@@ -327,13 +339,33 @@ export default defineComponent({
             prefixString = prefixString + `PREFIX ${namespaces[i].prefix.value}: <${namespaces[i].namespace.value}> `
           }
         }
-        querySelect = `${prefixString}select ?subj ?pred ?obj where {?subj ?pred ?obj . {{ ${decodedQueryString} ?pred ?obj }
-      UNION { ?subj ${decodedQueryString} ?obj } UNION { ?subj ?pred  ${decodedQueryString}}}}`
+        querySelect = `${prefixString}select distinct *
+                                      where {
+                                       { ?subj ?pred ?obj .
+                                          FILTER NOT EXISTS { GRAPH ?context { ?subj ?pred ?obj } }
+                                          {
+                                            { VALUES ?subj { ${decodedQueryString} } ?subj ?pred ?obj }
+                                            UNION
+                                            { VALUES ?pred { ${decodedQueryString} } ?subj ?pred ?obj }
+                                            UNION
+                                            { VALUES ?obj { ${decodedQueryString} } ?subj ?pred ?obj }
+                                          }
+                                       }
+                                       UNION
+                                        {
+                                           GRAPH ?context {
+                                            { VALUES ?subj { ${decodedQueryString} } ?subj ?pred ?obj }
+                                            UNION
+                                            { VALUES ?pred { ${decodedQueryString} } ?subj ?pred ?obj }
+                                            UNION
+                                            { VALUES ?obj { ${decodedQueryString} } ?subj ?pred ?obj }
+                                           }
+                                        }
+                                      }`
       }
       this.loading = true
       this.apiService.query(this.name, encodeURIComponent(querySelect), false, null).then(data => {
         const namespaces = this.getNamespaces
-        console.log(data)
         this.helperUtils.prepareUnionQueryResults(data, namespaces).then(data => {
           this.tableData = data
         })
@@ -347,9 +379,9 @@ export default defineComponent({
         this.setNumberOfStatements(parseInt(count))
         this.apiService.query(this.name, encodeURIComponent('select *\n' +
                 'where {\n' +
-                ' { ?subj ?pred ?obj .\n' +
+                '  { ?subj ?pred ?obj .\n' +
                 '    FILTER NOT EXISTS { GRAPH ?context { ?subj ?pred ?obj } }\n' +
-                ' }\n' +
+                '  }\n' +
                 '  UNION\n' +
                 '  { GRAPH ?context { ?subj ?pred ?obj } }\n' +
                 '}'),
@@ -357,7 +389,6 @@ export default defineComponent({
             this.lazyParams).then(data => {
           const namespaces = this.getNamespaces
           this.helperUtils.prepareUnionQueryResults(data, namespaces).then(data => {
-            console.log(data)
             this.totalRecords = this.getNumberOfStatements
             this.tableData = data
           })
@@ -365,8 +396,6 @@ export default defineComponent({
           this.$forceUpdate()
         })
       })
-
-
     },
     onPage(event: any) {
       this.lazyParams = event;
@@ -377,37 +406,48 @@ export default defineComponent({
       }
 
     },
+    enterPressed(queryString: string) {
+      this.search(queryString)
+    },
     search(queryString: string) {
-      this.isQueryExecuted = true
       if (queryString === '') {
         this.$toast.add({severity: 'error', summary: 'Error', detail: 'Resource is empty!', life: 3000})
         return
       }
+      if (!this.helperUtils.isGoodResourceValue(queryString, this.getNamespaces)) {
+        this.$toast.add({severity: 'error', summary: 'Error', detail: 'Wrong value!', life: 3000})
+        return
+      }
+      this.isQueryExecuted = true
       this.$router.push({name: 'ExplorePage', params: {name: this.name}, query:{resource: encodeURIComponent(queryString)}})
       this.resource = queryString
       this.query(queryString)
     },
     async downloadFile(isFormValid: any) {
-      this.submitted = true;
+      this.submitted = true
       if (!isFormValid) {
         return;
       }
+      this.loadingDownload = true
       const dataFormat = this.helperUtils.findDataFormatFromExtension(this.selectedFormat.extension)
-      const data = await this.apiService.getStatementsForDownload(this.name, dataFormat)
-      const blob = new Blob([data], {type: dataFormat})
-      const href = URL.createObjectURL(blob)
-
-      const a = Object.assign(document.createElement("a"), {
-        href,
-        style: "display:none",
-        download: `file${this.selectedFormat.extension}`
+      await this.apiService.getStatementsForDownload(this.name, dataFormat).then(data => {
+        const blob = new Blob([data], {type: dataFormat})
+        const href = URL.createObjectURL(blob)
+        const a = Object.assign(document.createElement("a"), {
+          href,
+          style: "display:none",
+          download: `file${this.selectedFormat.extension}`
+        })
+        a.click()
+        URL.revokeObjectURL(href)
+        a.remove()
+        this.loadingDownload = false
+        this.submitted = false
+        this.selectedFormat = ''
       })
 
-      a.click()
-      URL.revokeObjectURL(href)
-      a.remove()
     },
-    truncate(text: string, length: number, suffix: any) {
+    truncate(text: string, length: number, suffix: string) {
       if (text.length > length) {
         return text.substring(0, length) + suffix;
       } else {
@@ -427,7 +467,6 @@ export default defineComponent({
           life: 3000
         });
       })
-
     }
   }
 })
@@ -488,20 +527,31 @@ export default defineComponent({
   box-shadow: 0 0 0 0.2rem white;
 }
 
+:deep(.p-dropdown:not(.p-disabled)) {
+  border-color: black;
+}
+
 :deep(.pi) {
   color: black;
 }
 
 .press-button {
-  background-color: #6583A7;
+  background-color: #0A2341;
 }
 
 .press-button:enabled:hover {
-  background-color: #0A2341;
+  background-color: #6583A7;
 }
 
 .press-button:focus {
   box-shadow: 0 0 0 0.2rem #566F8C;
+}
+
+.copy-button {
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  position: absolute;
 }
 
 :deep(.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link) {
@@ -509,5 +559,44 @@ export default defineComponent({
 }
 :deep(.drop-down) {
   width: 170px;
+}
+
+@media only screen and (min-width: 700px) and (max-width: 1550px) {
+  :deep(.p-datatable) {
+    width: 1200px;
+  }
+
+  :deep([role=cell]) {
+    width: 200px;
+  }
+}
+
+@media only screen and (max-width: 1000px) {
+  .copy-button {
+    width: 20px;
+    height: 20px;
+    position: relative;
+  }
+  .container {
+    margin-top: 20px;
+    padding: 30px 30px 30px 30px;
+    display: flex;
+    justify-content: space-around;
+    min-width: 300px;
+    min-height: 400px;
+    background-color: white;
+    border-radius: 10px;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .input-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .main {
+    padding: 5px 5px 5px 5px;
+  }
 }
 </style>
