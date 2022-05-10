@@ -2,6 +2,10 @@ import {defineStore} from "pinia";
 import {Column, Namespace} from "@/views/Explore/types/ExploreTypes";
 import {Repository} from "@/views/Repositories/types/RepositoriesTypes";
 
+/*
+ Author: Patrik Tomov
+ Date: 7.5.2022
+*/
 /** Store, drží podstatné dáta, ktoré sú dostupné v každej komponente **/
 export const useStore = defineStore({
     id: 'main',

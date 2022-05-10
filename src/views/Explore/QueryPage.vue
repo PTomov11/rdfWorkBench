@@ -3,7 +3,6 @@
   <MenuLayout title="Query Repository" active-section="Query"></MenuLayout>
 
   <div class="main">
-
     <div class="filter">
       <div class="sub-filter1">
         <Button label="SAVED QUERIES" @click="openSavedQueries"></Button>
@@ -15,7 +14,6 @@
         <InputText class="input" type="text" v-model="queryName"/>
       </div>
     </div>
-
     <div>
       <Textarea class="editor" id="editor"></Textarea>
     </div>
@@ -61,7 +59,6 @@
     </template>
   </Dialog>
 
-
   <Dialog v-model:visible="deleteSavedQueryDialog" header="Confirm" :modal="true">
     <div style="display: flex;align-items: center;padding-top: 25px">
       <i class="pi pi-exclamation-triangle mr-3" style="font-size: 5rem;color: red"/>
@@ -73,8 +70,6 @@
       <Button label="Yes" icon="pi pi-check" @click="deleteQuery"/>
     </template>
   </Dialog>
-
-
 </template>
 
 <script lang="ts">
@@ -91,6 +86,10 @@ import MenuLayout from "@/components/global-components/MenuLayout.vue";
 import {mapActions, mapState} from "pinia";
 import {useStore} from "@/store/store";
 
+/*
+    Author: Patrik Tomov
+    Date: 7.5.2022
+*/
 export default defineComponent({
   name: "Query",
   components: {MenuLayout},
@@ -98,21 +97,21 @@ export default defineComponent({
     return {
       queryResults: [] as any,
       columns: [] as Column[],
-      content: '',
+      content: '' as string,
       queryName: '' as string,
       editor: null as any,
-      displayModal: false,
-      editModal: false,
+      displayModal: false as boolean,
+      editModal: false as boolean,
       savedQueries: [] as SavedQuery[],
       deleteSavedQueryDialog: false,
       query: {} as SavedQuery,
       apiService: null as unknown as APIService,
       helperUtils: null as unknown as helperUtils,
-      loading: false,
-      editQueryPosition: 'right',
-      editQueryName: '',
-      editQueryValue: '',
-      oldQueryName: '',
+      loading: false as boolean,
+      editQueryPosition: 'right' as string,
+      editQueryName: '' as string,
+      editQueryValue: '' as string,
+      oldQueryName: '' as string,
     }
   },
   computed: {
@@ -124,7 +123,8 @@ export default defineComponent({
     this.helperUtils = new helperUtils()
   },
   mounted() {
-    var textArea = document.getElementById('editor')
+    //load CodeMirror editor
+    const textArea = document.getElementById('editor');
     if (textArea !== null) {
       this.editor = CodeMirror.fromTextArea(textArea as HTMLTextAreaElement, {
         lineNumbers: true,
@@ -133,6 +133,7 @@ export default defineComponent({
       });
     }
 
+    //check if there are some savedQueries in browser
     if (localStorage.getItem('savedQueries')) {
       const savedQueries = localStorage.getItem('savedQueries')
       try {
@@ -143,7 +144,7 @@ export default defineComponent({
         localStorage.removeItem('savedQueries');
       }
     }
-    /** Function to track cahnges in CodeMirror editor **/
+    //function to track changes in editor
     this.editor.on("change", (cm: any, change: any) => {
       var before = cm.getRange({line: 0, ch: 0}, change.from);
       var after = cm.getRange(change.to, {line: cm.lineCount() + 1, ch: 0});
@@ -224,13 +225,13 @@ export default defineComponent({
         name: this.editQueryName,
         value: this.editQueryValue
       } as SavedQuery
-      if (this.savedQueries.some(query => query.name === editedQuery.name)) {
+      const queriesWithoutEditedOne = this.savedQueries.filter(query => query.name !== this.oldQueryName)
+      if (queriesWithoutEditedOne.some(query => query.name === editedQuery.name)) {
         this.$toast.add({severity: 'error', summary: 'Error', detail: 'Query with this name already exists!', life: 3000})
         return
       }
-      this.savedQueries = this.savedQueries.filter(val => val.name !== this.oldQueryName)
+      this.savedQueries = this.savedQueries.filter(query => query.name !== this.oldQueryName)
       this.savedQueries.push(editedQuery)
-      this.oldQueryName = editedQuery.name
       this.saveQueriesToBrowser()
       this.editModal = false
       this.$toast.add({severity: 'success', summary: 'Successful', detail: 'Query Saved', life: 3000})
@@ -286,24 +287,27 @@ export default defineComponent({
   margin-right: 0;
 }
 
-.query-header {
-  font-size: 60px;
-  font-weight: bolder;
-  height: 100px;
-  display: flex;
-  align-items: center;
-}
-
-:deep(.p-datatable) {
-  max-width: 100%;
-}
-
-:deep([role=cell]) {
-  width: 250px;
-}
 .input-container {
   display: flex;
   align-items: center;
   gap: 20px;
 }
+
+@media only screen and (max-width: 1000px) {
+  :deep(.CodeMirror) {
+    height: 400px;
+    width: 500px;
+  }
+  .filter {
+    height: 300px;
+    flex-direction: column;
+  }
+  .sub-filter2 {
+    flex-direction: column;
+  }
+  :deep(.p-dialog) {
+    width: 500px;
+  }
+}
+
 </style>
